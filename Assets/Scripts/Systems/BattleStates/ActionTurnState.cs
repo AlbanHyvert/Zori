@@ -14,26 +14,18 @@ public class ActionTurnState : State
 //First function to start at the beginning of the State
     public override void Start()
     {
-        CalculateDamage calculateDamage = BattleSystem.CalculateDamage;
         Zori pZori = BattleSystem.PlayerZori;
         Zori eZori = BattleSystem.EnemyZori;
 
         BattleSystem.SetEnemyTech(BattleSystem.EnemyTech());
 
-        CalculatePriority(BattleSystem.PlayerZori, BattleSystem.EnemyZori);
-    }
-
-//Only use during fight
-    public override void Tick()
-    {
-
+        CalculatePriority(pZori, eZori);
     }
 
 //Last step before the next State
     public override void Stop()
     {
-        BattleSystem.StopAllCoroutines();
-        BattleSystem.SetState(new ActionTurnState(BattleSystem));
+        
     }
 
 //Calculate First Zori to Attack
@@ -49,70 +41,41 @@ public class ActionTurnState : State
 
         if(pTechPriority > eTechPriority)
         {
-            PlayerAtkTurn(BattleSystem.PTech, PZori, EZori);
+            BattleSystem.SetState(new PlayerTurnState(BattleSystem));
+            BattleSystem.OnState.Start();
             return;
         }
         else if(eTechPriority > pTechPriority)
         {
-            EnemyAtkTurn(BattleSystem.ETech, EZori, PZori);
+            BattleSystem.SetState(new EnemyTurnState(BattleSystem));
+            BattleSystem.OnState.Start();
             return;
         }
 
         if(pZoriSpeed > eZoriSpeed)
         {
-            PlayerAtkTurn(BattleSystem.PTech, PZori, EZori);
+            BattleSystem.SetState(new PlayerTurnState(BattleSystem));
+            BattleSystem.OnState.Start();
             return;
         }
         else if(eZoriSpeed > pZoriSpeed)
         {
-            EnemyAtkTurn(BattleSystem.ETech, EZori, PZori);
+            BattleSystem.SetState(new EnemyTurnState(BattleSystem));
+            BattleSystem.OnState.Start();
             return;
         }
 
         if(rdm > 0)
         {
-            PlayerAtkTurn(BattleSystem.PTech, PZori, EZori);
+            BattleSystem.SetState(new PlayerTurnState(BattleSystem));
+            BattleSystem.OnState.Start();
             return;
         }
         else
         {
-            EnemyAtkTurn(BattleSystem.ETech, EZori, PZori);
+            BattleSystem.SetState(new EnemyTurnState(BattleSystem));
+            BattleSystem.OnState.Start();
             return;
         }
-    }
-
-    private void PlayerAtkTurn(TechBase tech, Zori PZori, Zori EZori)
-    {
-        _pTurnEnded = true;
-
-        Debug.Log("Player Zori use: " + tech.Name);
-
-        EZori.onDamaged.Invoke(BattleSystem.CalculateDamage.DealDamage(tech, PZori, EZori));
-
-        if(_eTurnEnded == true)
-        {
-            Stop();
-            return;
-        }
-
-        EnemyAtkTurn(BattleSystem.ETech, EZori, PZori);
-        return;
-    }
-    private void EnemyAtkTurn(TechBase tech, Zori EZori, Zori PZori)
-    {
-        _eTurnEnded = true;
-
-        Debug.Log("Enemy Zori use: " + tech.Name);
-
-        PZori.onDamaged.Invoke(BattleSystem.CalculateDamage.DealDamage(tech, EZori, PZori));
-
-        if(_pTurnEnded == true)
-        {
-            Stop();
-            return;
-        }
-
-        PlayerAtkTurn(BattleSystem.PTech, PZori, EZori);
-        return;
     }
 }

@@ -11,10 +11,8 @@ public class BattleSystem : BattleStateMachine
     [SerializeField] private Zori _enemyZori = null;
     [Header("Tech Selector")]
     [SerializeField] private TechSelector _techSelector = null;
-    [Header("DevTools")]
-    public int pZoriTech = 0;
-    public int eZoriTech = 0;
 
+    private State _oldState = null;
     private TechBase _pTech = null;
     private TechBase _eTech = null;
     private CalculateDamage _calculateDamage = new CalculateDamage();
@@ -36,16 +34,22 @@ public class BattleSystem : BattleStateMachine
         => _pTech;
     public TechBase ETech
         => _eTech;
+    public State OldState
+        => _oldState;
 #endregion PROPERTIES
 
 //SetUp battle information
     private void Awake()
     {
+        _oldState = null;
+        
         _playerZori.Init();
         _enemyZori.Init();
 
         _playerHUD.Informations.SetInformations(_playerZori);
         _enemyHUD.Informations.SetInformations(_enemyZori);
+
+        SetState(new ActionTurnState(this));
     }
 
 //Switch Zori function during the battle
@@ -83,17 +87,21 @@ public TechBase EnemyTech()
 }
 
 private UnityAction onTechValid;
+public UnityAction onUpdate;
 
 //Set the first battle State
     private void Start()
     {
+        GameManager.Instance.OnUpdateBSystem += OnUpdate;
+
         onTechValid += FightReady;
 
-        _playerZori.onUpdateHealth += _playerHUD.Informations.UpdateHp;
-        _enemyZori.onUpdateHealth += _enemyHUD.Informations.UpdateHp;
+        _playerZori.onUpdateHealth += _playerHUD.UpdateHp;
+        _enemyZori.onUpdateHealth += _enemyHUD.UpdateHp;
 
-        _playerZori.onUpdateStamina += _playerHUD.Informations.UpdateStamina;
-        _enemyZori.onUpdateStamina += _enemyHUD.Informations.UpdateStamina;
+        _playerZori.onUpdateStamina += _playerHUD.UpdateSta;
+        _enemyZori.onUpdateStamina += _enemyHUD.UpdateSta;
+
 
         for (int i = 0; i < _playerZori.Techniques.Length; i++)
         {
@@ -104,7 +112,15 @@ private UnityAction onTechValid;
             _techSelector.ButtonDatas[i].Text.text = _playerZori.Techniques[i].Name;
 ;       }
 
-        SetState(new ActionTurnState(this));
+        
+    }
+
+    private void OnUpdate()
+    {
+        if(onUpdate != null)
+        {
+            onUpdate();
+        }
     }
 
     private void FightReady()
@@ -114,4 +130,7 @@ private UnityAction onTechValid;
             State.Start();
         }
     }
+
+    public State SetOldState(State curState)
+        => _oldState = curState;
 }

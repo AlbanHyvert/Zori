@@ -13,6 +13,9 @@ public class Zori : MonoBehaviour
     [SerializeField, Range(1, 100)] private int _level = 1;
     [Space ,SerializeField] private BattlePoint _battlePoint = new BattlePoint();
     [SerializeField] private bool _isChroma = false;
+    
+    [Header("Animator")]
+    [SerializeField] private Animator _animator = null;
 
 #region VARIABLES
     private AdditionalEffects _addEffects = new AdditionalEffects();
@@ -57,6 +60,8 @@ public AdditionalEffects AddEffects
     =>_addEffects;
 public BattlePoint BPoint
         => _battlePoint;
+public Animator Animator
+    => _animator;
 #endregion PROPERTIES
 
 #region EVENTS
