@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e7cc0bfc24c5b043abc855abfdd6776, type: 3}
+  m_Name: Cubear
+  m_EditorClassIdentifier: 
+  _stats:
+    _maxHp: 60
+    _atk: 65
+    _def: 55
+    _speAtk: 40
+    _speDef: 50
+    _speed: 40
+    _maxStamina: 50
+  _informations:
+    Id: 001
+    Name: Cubear
+    Description: 
+    Weight: 
+    Size: 
+    XpStructure: 2
+  _model:
+    _prefab: {fileID: 1159503489957792472, guid: 522422bac34343043968d2d438b360b2, type: 3}
+    _chromaModel: {fileID: 0}
+    _audio:
+    - audioName: 
+      audio: {fileID: 0}
+    _vfx:
+    - particleName: 
+      particle: {fileID: 0}
+  _genderRatio:
+    Male: 50
+    Female: 50
+  _types: 0300000010000000
+  _passivePossibilities:
+  - _name: Stone Bearer
+    _description: 
+  - _name: Power Punch
+    _description: 
+  _givenBps:
+    _maxHp: 0
+    _atk: 0
+    _def: 0
+    _speAtk: 0
+    _speDef: 0
+    _speed: 0
+  _learnableTechs:
+  - Level: 1
+    Techs: {fileID: 11400000, guid: 62f26a15805e48340a2c2608b9da7bf2, type: 2}
+  - Level: 1
+    Techs: {fileID: 11400000, guid: 371b951d0c98e3f4eb6cb7f5cfcb07a2, type: 2}
+  - Level: 1
+    Techs: {fileID: 11400000, guid: ade7da1a6a7913740931474501493cb0, type: 2}

@@ -1,136 +1,112 @@
 using UnityEngine;
-using UnityEngine.Events;
+using System;
 
 public class BattleSystem : BattleStateMachine
 {
-    [Header("HUD")]
-    [SerializeField] private BattleHUD _playerHUD = null;
-    [SerializeField] private BattleHUD _enemyHUD = null;
-    [Space, Header("Zori")]
-    [SerializeField] private Zori _playerZori = null;
-    [SerializeField] private Zori _enemyZori = null;
-    [Header("Tech Selector")]
-    [SerializeField] private TechSelector _techSelector = null;
+    [SerializeField] private ActiveMonster _activePlayer = null;
+    [SerializeField] private ActiveMonster _activeEnemy = null;
 
-    private State _oldState = null;
-    private TechBase _pTech = null;
-    private TechBase _eTech = null;
-    private CalculateDamage _calculateDamage = new CalculateDamage();
+#region Variables
+    //private Npc _npc = null;
+    private Player _player = null;
 
-#region PROPERTIES
-    public Zori PlayerZori
-        => _playerZori;
-    public Zori EnemyZori
-        => _enemyZori;
-    public CalculateDamage CalculateDamage
-        => _calculateDamage;
-    public BattleHUD PlayerHUD
-        => _playerHUD;
-    public BattleHUD EnemyHUD
-        => _enemyHUD;
-    public TechSelector TechSelector
-        => _techSelector;
-    public TechBase PTech
-        => _pTech;
-    public TechBase ETech
-        => _eTech;
-    public State OldState
-        => _oldState;
-#endregion PROPERTIES
+    public ActiveMonster ActivePlayer
+        => _activePlayer;
+    public ActiveMonster ActiveEnemy
+        => _activeEnemy;
 
-//SetUp battle information
-    private void Awake()
+    private obj_Techs _allyTech = null;
+    private obj_Techs _enemyTech = null;
+
+    private int _allyActionPrio = 0;
+    private int _enemyActionPrio = 0;
+#endregion Variables
+
+#region Properties
+    public obj_Techs AllyTech
+        => _allyTech;
+    public obj_Techs EnemyTech
+        => _enemyTech;
+    
+    public int AllyActionPrio
+        => _allyActionPrio;
+    public int EnemyActionPrio
+        => _enemyActionPrio;
+#endregion Properties
+
+    public bool AllyTurnEnded {get; set;}
+    public bool EnemyTurnEnded {get; set;}
+    public bool PlayerHasWon {get; set;}
+
+    private event Action _onActionSelected;
+    public event Action OnActionSelected
     {
-        _oldState = null;
-        
-        _playerZori.Init();
-        _enemyZori.Init();
-
-        _playerHUD.Informations.SetInformations(_playerZori);
-        _enemyHUD.Informations.SetInformations(_enemyZori);
-
-        SetState(new ActionTurnState(this));
+        add
+        {
+            _onActionSelected -= value;
+            _onActionSelected += value;
+        }
+        remove
+        {
+            _onActionSelected -= value;
+        }
     }
 
-//Switch Zori function during the battle
-    public void SwitchPlayerZori(Zori newZori)
-        => _playerZori = newZori;
-    public void SwitchEnemyZori(Zori newZori)
-        => _enemyZori = newZori;
-
-//Set Zori Techs
-    public void SetPlayerTech(TechBase tech)
-    {
-        _pTech = tech;
-        onTechValid.Invoke();
-    }
-    public void SetEnemyTech(TechBase tech)
-    {
-        _eTech = tech;
-    }
-
-//Generate Enemy Attack
-public TechBase EnemyTech()
-{
-    int ChosenTech = 0;
-    int techQuantity = 0;
-
-    for (int i = 0; i < _enemyZori.Techniques.Length; i++)
-    {
-        if(_enemyZori.Techniques[i] != null)
-            techQuantity++;
-    }
-
-    ChosenTech = Random.Range(0, techQuantity);
-
-    return _enemyZori.Techniques[ChosenTech];
-}
-
-private UnityAction onTechValid;
-public UnityAction onUpdate;
-
-//Set the first battle State
     private void Start()
     {
-        GameManager.Instance.OnUpdateBSystem += OnUpdate;
+        _player = Player.Instance;
 
-        onTechValid += FightReady;
+        SetNewMonsters(_activePlayer, _player.Inventory.TeamHolder.GetHealthyZori());
+        SetNewMonsters(_activeEnemy, _player.Encounter.WildMonster);
 
-        _playerZori.onUpdateHealth += _playerHUD.UpdateHp;
-        _enemyZori.onUpdateHealth += _enemyHUD.UpdateHp;
+        _allyActionPrio = 0;
+        _enemyActionPrio = 0;
 
-        _playerZori.onUpdateStamina += _playerHUD.UpdateSta;
-        _enemyZori.onUpdateStamina += _enemyHUD.UpdateSta;
+        AllyTurnEnded = false;
+        EnemyTurnEnded = false;
+        PlayerHasWon = false;
 
+        HUD.Instance.Selector.SetBattleSystem(this);
+        HUD.Instance.UISwitch.SetBattleSystem(this);
 
-        for (int i = 0; i < _playerZori.Techniques.Length; i++)
-        {
-            if(_playerZori.Techniques[i] == null)
-                return;
+        SetState(new StartBattleState(this));
+    }
 
-            _techSelector.ButtonDatas[i].SetTech(_playerZori.Techniques[i]);
-            _techSelector.ButtonDatas[i].Text.text = _playerZori.Techniques[i].Name;
-;       }
-
+    public void SetPlayerTech(obj_Techs tech)
+    {
+        if(tech == null)
+            return;
         
-    }
+        _allyTech = tech;
 
-    private void OnUpdate()
+        SetAllyActionPrio(_allyTech.Priority);
+
+        if(_onActionSelected != null)
+            _onActionSelected();
+    }
+    public void SetEnemyTech(obj_Techs tech)
     {
-        if(onUpdate != null)
-        {
-            onUpdate();
-        }
+        _enemyTech = tech;
+
+        SetEnemyActionPrio(_enemyTech.Priority);
     }
 
-    private void FightReady()
+    public void SetAllyActionPrio(int value)
+        => _allyActionPrio = value;
+    public void SetEnemyActionPrio(int value)
+        => _enemyActionPrio = value;
+
+    public void SetNewMonsters(ActiveMonster activeMonster, Monsters monsters)
     {
-        if(_pTech != null)
-        {
-            State.Start();
-        }
-    }
+       switch (activeMonster.IsPlayer)
+       {
+        case true:
+            activeMonster.SetMonster(monsters);
+            break;
 
-    public State SetOldState(State curState)
-        => _oldState = curState;
+        case false:
+            activeMonster.SetMonster(monsters);
+            break;
+       }
+    }
 }
