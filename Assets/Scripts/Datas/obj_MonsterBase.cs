@@ -18,6 +18,7 @@ public class obj_MonsterBase : ScriptableObject
     [SerializeField] private Passive[] _passivePossibilities = new Passive[2];
     [Space]
     [SerializeField] private BattlePoints _givenBps = new BattlePoints();
+    [SerializeField] private int _givenXp = 300;
     [Space]
     [SerializeField] private LearnableTech[] _learnableTechs = null;
 
@@ -36,6 +37,8 @@ public class obj_MonsterBase : ScriptableObject
         => _passivePossibilities;
     public BattlePoints GivenBps
         => _givenBps;
+    public int GivenXp
+        => _givenXp;
     public LearnableTech[] LearnableTechs
         => _learnableTechs;
 #endregion Properties
@@ -76,4 +79,5 @@ public class obj_MonsterBase : ScriptableObject
         
         return e_Gender.FEMALE;
     }
+
 }

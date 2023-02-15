@@ -127,7 +127,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _data:
     _base: {fileID: 11400000, guid: e8f60649903434e4db8126c875be7723, type: 2}
-    _nickname: 
     _level: 1
     _animator: {fileID: 0}
     _battlePoints:

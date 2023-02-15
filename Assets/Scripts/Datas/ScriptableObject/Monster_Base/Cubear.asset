@@ -52,6 +52,7 @@ MonoBehaviour:
     _speAtk: 0
     _speDef: 0
     _speed: 0
+  _givenXp: 300
   _learnableTechs:
   - Level: 1
     Techs: {fileID: 11400000, guid: 62f26a15805e48340a2c2608b9da7bf2, type: 2}

@@ -28,15 +28,15 @@ public class HUD : Singleton<HUD>
     
     public void ActivateBattleHUD(bool value)
         {
-            _battleHUD.SetActivePlayerUi(false);
-            _battleHUD.SetActiveOtherUi(false);
+            _battleHUD.SetActivePlayerUi(value);
+            _battleHUD.SetActiveEnemyUi(value);
 
-            _battleHUD.SetActiveSelector(false);
+            _battleHUD.SetActiveSelector(value);
             _battleHUD.SetActiveTechSelector(false);
         }
 
     public void ActivateSwitch(bool value)
     {
-        _uiSwitch.gameObject.SetActive(value);
+        //_uiSwitch.gameObject.SetActive(value);
     }
 }

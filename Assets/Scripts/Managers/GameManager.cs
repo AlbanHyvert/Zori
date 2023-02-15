@@ -1,18 +1,29 @@
 using System.Collections.Generic;
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : Singleton<GameManager>
 {
     [SerializeField] private float _worldSpeed = 1.5f;
 
     private float _time = 0;
+    private Player _player = null;
 
 #region Properties
     public float WorldSpeed
         => _worldSpeed;
     public float Time
         => _time;
+    public Player GetPlayer(Player player)
+    {
+        if (_player != null)
+            Destroy(_player);
+        else
+            return _player = player;
+
+        return _player;
+    }
 #endregion Properties
 
 #region Events
@@ -117,5 +128,15 @@ public class GameManager : Singleton<GameManager>
         _onUpdateMonster = null;
         _onUpdateBattle = null;
         _onUpdateHUD = null;
+    }
+
+    public void LoadBattleScene()
+    {
+        SceneManager.LoadScene("BattleScene");
+    }
+
+    public void LoadWorldScene()
+    {
+        SceneManager.LoadScene("EncounterScene");
     }
 }

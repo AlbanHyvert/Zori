@@ -12,10 +12,12 @@ public class DialBox : MonoBehaviour
     private float _timeBeforeNextChar = 0;
 
     public float ReturnDuration()
-        => (_textArray.Length * _timeByLetters) + 1;
+        => (_textArray.Length * _timeByLetters);
 
     public void AddDialogue(string textToWrite)
     {
+        _text.text = string.Empty;
+
         _char = 0;
         _textArray = textToWrite.ToCharArray();
         _timeBeforeNextChar = 0;
@@ -46,12 +48,12 @@ public class DialBox : MonoBehaviour
         GameManager.Instance.OnUpdateHUD -= OnUpdateText;
     }
 
-    private void Clear()
+    public void Clear()
     {
+        _text.text = string.Empty;
+
         _char = 0;
         _textArray = null;
         _timeBeforeNextChar = 0;
-
-        _text.text = string.Empty;
     }
 }

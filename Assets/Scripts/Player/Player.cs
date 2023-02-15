@@ -18,6 +18,27 @@ public class Player : Singleton<Player>
         base.Awake();
 
         _inventory.Init();
-        _encounter.WildMonster.Init();
+
+        if(_encounter.WildMonster != null )
+            _encounter.WildMonster.Init();
+
+        GameManager.Instance.GetPlayer(this);
+    }
+
+    public void InitBattle(GameObject encounter = null)
+    {
+        //Check npc, if null
+
+        MonsterController monsterController = encounter.GetComponent<MonsterController>();
+
+        if (monsterController == null) return;
+
+        Monsters monsters = monsterController.Data;
+
+        if (monsters == null) return;
+
+        _encounter.SetWild(monsters);
+
+        GameManager.Instance.LoadBattleScene();
     }
 }

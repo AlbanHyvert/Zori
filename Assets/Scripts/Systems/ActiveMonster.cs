@@ -21,8 +21,6 @@ public class ActiveMonster : MonoBehaviour
     {
         _monster = monsters;
 
-        HUD.Instance.BattleHUD.Player.Init(_monster);
-
         if(isToCreate == true)
             _model = Instantiate(_monster.Base.Model.Prefab, Position(), Quaternion.identity);
 

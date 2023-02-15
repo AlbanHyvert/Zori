@@ -23,11 +23,11 @@ public class Monsters : IHealth, IStamina
     private e_Traits _trait = e_Traits.NONE;
     private Passive _passive = null;
     private bool _isChroma = false;
-    private int _xpLevelUp = 100;
     private GameObject _item = null;
     private int _hp = 0;
     private int _stamina = 0;
-    private int _experience = 0;
+    [SerializeField] private int _experience = 0;
+    private int _maxExperience = 100;
     private Stats _stats = new Stats();
     private obj_Techs[] _techs = new obj_Techs[4];
     private StatsBoost _statsBoostHolder = new StatsBoost();
@@ -83,6 +83,20 @@ public class Monsters : IHealth, IStamina
             _onUpdateStamina -= value;
         }
     }
+
+    private event Action<int> _onUpdateExperience;
+    public event Action<int> OnUpdateExperience
+    {
+        add
+        {
+            _onUpdateExperience -= value;
+            _onUpdateExperience += value;
+        }
+        remove
+        {
+            _onUpdateExperience -= value;
+        }
+    }
 #endregion Events
 
     public void Init()
@@ -112,6 +126,8 @@ public class Monsters : IHealth, IStamina
 //-----------------------Set Nickname---------------------
         if(_nickname == string.Empty)
             _nickname = _base.name;
+
+        CalculateNewMaxXp();
     }
 
     private void CheckTechs(obj_MonsterBase.LearnableTech[] learnableTech)
@@ -128,6 +144,9 @@ public class Monsters : IHealth, IStamina
 
             if(techLevel < _level)
             {
+                if (j >= 4)
+                    return;
+
                 _techs[j] = tech;
 
                 j++;
@@ -138,30 +157,56 @@ public class Monsters : IHealth, IStamina
     private void CalculateNewMaxXp()
         {
             int level = _level;
-            int maxXp = _xpLevelUp;
+            int maxXp = _maxExperience;
 
            switch (_base.Information.XpStructure)
            {
             case e_XpStructure.PARABOLIC:
-                maxXp = Mathf.FloorToInt((1.2f * (level^3)) - (15 * (level^2))
+                maxXp = Mathf.FloorToInt((1.2f * Mathf.Pow(level, 3)) - (15 * Mathf.Pow(level, 2))
                              + (100 * level - 140));
                 break;
             case e_XpStructure.SLOW:
-                maxXp = Mathf.FloorToInt((1.25f * (level^3)));
+                maxXp = Mathf.FloorToInt(1.25f * Mathf.Pow(level, 3));
                 break;
             case e_XpStructure.MEDIUM:
-                maxXp = Mathf.FloorToInt(level^3);
+                maxXp = Mathf.FloorToInt(Mathf.Pow(level, 3));
                 break;
             case e_XpStructure.FAST:
-                maxXp = Mathf.FloorToInt(0.8f * (level^3));
+                maxXp = Mathf.FloorToInt(0.8f * Mathf.Pow(level, 3));
                 break;
            }
+
+           _maxExperience = maxXp;
         }
 
-    public void SetLevel(int level)
-        => _level = level;
+    public void UpdateLevel(int value)
+    {
+        _level += value;
+
+        _stats.UpdateStats(Level, Base, _battlePoints);
+
+        CalculateNewMaxXp();
+
+        AddExperience(0);
+    }
+
     public string SetNickname(string newName)
         => _nickname = newName;
+
+    public void AddExperience(int value)
+    {
+        _experience += value;
+
+        if(_experience >= _maxExperience)
+        {
+            UpdateLevel(1);
+        }
+
+        if(_onUpdateExperience != null)
+        {
+            _onUpdateExperience(_experience);
+        }
+    }
 
 #region Interfaces
 //--------------------------Health--------------------------

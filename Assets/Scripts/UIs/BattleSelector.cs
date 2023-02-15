@@ -53,7 +53,5 @@ public class BattleSelector : MonoBehaviour
 
         if(tech == null)
             return;
-
-        _battleSystem.SetPlayerTech(tech);
     }
 }

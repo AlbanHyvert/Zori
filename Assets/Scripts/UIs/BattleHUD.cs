@@ -11,7 +11,7 @@ public class BattleHUD : MonoBehaviour
     [SerializeField] private GameObject _uiTechSelector = null;
     [Space]
     [SerializeField] private GameObject _uiPlayer = null;
-    [SerializeField] private GameObject _uiOther = null;
+    [SerializeField] private GameObject _uiEnemy = null;
 
     public PlayerHUD Player
         => _player;
@@ -24,8 +24,8 @@ public class BattleHUD : MonoBehaviour
         => _uiTechSelector.SetActive(value);
     public void SetActivePlayerUi(bool value)
         => _uiPlayer.SetActive(value);
-    public void SetActiveOtherUi(bool value)
-        => _uiOther.SetActive(value);
+    public void SetActiveEnemyUi(bool value)
+        => _uiEnemy.SetActive(value);
 
 #region Structs
     [System.Serializable]
