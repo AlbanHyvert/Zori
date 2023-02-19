@@ -8,6 +8,8 @@ public class ActiveMonster : MonoBehaviour
     private Monsters _monster = null;
     private obj_Techs _techUsed = null;
 
+    private int _coldCount = 0;
+
     public Monsters CurMonster
         => _monster;
 
@@ -16,6 +18,9 @@ public class ActiveMonster : MonoBehaviour
 
     public obj_Techs TechUsed
         => _techUsed;
+
+    public int ColdCount
+    { get => _coldCount; set => _coldCount = value; }
 
     public Monsters SetMonster(Monsters monsters, bool isToCreate = false)
     {

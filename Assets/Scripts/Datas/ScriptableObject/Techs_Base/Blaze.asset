@@ -16,19 +16,18 @@ MonoBehaviour:
     Name: Blaze
     Description: 
     Type: 1
-    Power: 60
+    Power: 0
     Stamina: 10
   _extras:
     Tag: 8
-    Style: 1
+    Style: 2
     Target: 1
     Effect:
-      affliction: 6
+      affliction: 1
       statsMod:
-        _statMod:
-          atk: 0
-          def: 0
-          spAtk: 0
-          spDef: 0
-          speed: 0
+        atk: 0
+        def: 0
+        spAtk: 0
+        spDef: 0
+        speed: 0
   _priority: 0

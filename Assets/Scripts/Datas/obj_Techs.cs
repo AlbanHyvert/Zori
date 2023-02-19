@@ -40,7 +40,7 @@ public class obj_Techs : ScriptableObject
     public struct Effects
     {
         public e_Afflictions affliction;
-        public StatsBoost statsMod;
+        public StatsBoost.StatsModificator statsMod;
     }
 #endregion Structs
 }

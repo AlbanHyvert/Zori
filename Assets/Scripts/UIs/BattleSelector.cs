@@ -28,6 +28,8 @@ public class BattleSelector : MonoBehaviour
             //Set Icon
             cost.text = tech.Information.Stamina.ToString();
 
+            button.enabled = true;
+
             return tech;
         }
     
@@ -35,9 +37,11 @@ public class BattleSelector : MonoBehaviour
         {
             tech = null;
             
-            name.text = string.Empty;
+            name.text = "- - - -";
             //Set Icon
             cost.text = "00";
+
+            button.enabled = false;
         }
     }
 

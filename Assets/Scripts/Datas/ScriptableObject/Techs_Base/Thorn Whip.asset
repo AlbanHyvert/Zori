@@ -23,12 +23,11 @@ MonoBehaviour:
     Style: 0
     Target: 1
     Effect:
-      affliction: 6
+      affliction: 3
       statsMod:
-        _statMod:
-          atk: 0
-          def: 0
-          spAtk: 0
-          spDef: 0
-          speed: 0
+        atk: 0
+        def: 0
+        spAtk: 0
+        spDef: 0
+        speed: 0
   _priority: 0

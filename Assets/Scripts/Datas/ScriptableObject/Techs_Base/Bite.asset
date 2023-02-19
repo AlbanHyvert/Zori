@@ -25,10 +25,9 @@ MonoBehaviour:
     Effect:
       affliction: 6
       statsMod:
-        _statMod:
-          atk: 0
-          def: 0
-          spAtk: 0
-          spDef: 0
-          speed: 0
+        atk: 0
+        def: 0
+        spAtk: 0
+        spDef: 0
+        speed: 0
   _priority: 0

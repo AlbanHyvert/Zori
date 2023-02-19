@@ -208,6 +208,9 @@ public class Monsters : IHealth, IStamina
         }
     }
 
+    public void SetAffliction(e_Afflictions newAffliction)
+        => _affliction = newAffliction;
+
 #region Interfaces
 //--------------------------Health--------------------------
     //Remove value to the Hp

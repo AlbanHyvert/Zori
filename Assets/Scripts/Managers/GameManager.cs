@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Threading;
 
 public class GameManager : Singleton<GameManager>
 {
@@ -9,6 +10,8 @@ public class GameManager : Singleton<GameManager>
 
     private float _time = 0;
     private Player _player = null;
+
+    private Scene _currentScene;
 
 #region Properties
     public float WorldSpeed
@@ -98,6 +101,11 @@ public class GameManager : Singleton<GameManager>
     }
 #endregion Events
 
+    private void Start()
+    {
+        _currentScene = SceneManager.GetActiveScene();
+    }
+
     private void FixedUpdate()
     {
         _time += _worldSpeed * UnityEngine.Time.fixedDeltaTime;
@@ -132,11 +140,19 @@ public class GameManager : Singleton<GameManager>
 
     public void LoadBattleScene()
     {
-        SceneManager.LoadScene("BattleScene");
+        SceneManager.UnloadSceneAsync("EncounterScene");
+
+        SceneManager.LoadSceneAsync("BattleScene");
+
+        _currentScene = SceneManager.GetActiveScene();
     }
 
     public void LoadWorldScene()
     {
-        SceneManager.LoadScene("EncounterScene");
+        SceneManager.UnloadSceneAsync("BattleScene");
+
+        SceneManager.LoadSceneAsync("TestScene");
+
+        _currentScene = SceneManager.GetActiveScene();
     }
 }

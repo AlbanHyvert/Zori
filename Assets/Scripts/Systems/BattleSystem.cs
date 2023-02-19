@@ -1,8 +1,9 @@
 using Monster.Enum;
 using System;
 using System.Collections;
-using System.IO.Pipes;
+using UnityEditor;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public enum BattleState
 {
@@ -17,18 +18,15 @@ public enum BattleState
 
 public enum BattleAction
 {
-    Tech,
+    Tech = 0,
     Switch,
     Item,
-    Run
+    Run,
+    Afflicted
 }
 
 public class BattleSystem : MonoBehaviour
 {
-    [Header("HUD")]
-    [SerializeField] private BattleHUD playerHUD = null;
-    [SerializeField] private BattleHUD enemyHUD = null;
-    [Space(10)]
     [Header("Units")]
     [SerializeField] private ActiveMonster playerUnit = null;
     [SerializeField] private ActiveMonster enemyUnit = null;
@@ -51,6 +49,9 @@ public class BattleSystem : MonoBehaviour
     int _playerPriority = 0;
     int _enemyPriority = 0;
 
+    int _playerAfflictedTurn = 0;
+    int _enemyAfflictedTurn = 0;
+
     bool _playerTurnEnded = false;
     bool _enemyTurnEnded = false;
 
@@ -61,7 +62,19 @@ public class BattleSystem : MonoBehaviour
 
     private void Start()
     {
+        if(HUD.Instance == null)
+        {
+            Start();
+
+            return;
+        }
+
+        dialogBox = HUD.Instance.DialBox;
+
         StartBattle(Player.Instance.Inventory.TeamHolder, Player.Instance.Encounter.WildMonster);
+
+        _playerAfflictedTurn = 0;
+        _enemyAfflictedTurn = 0;
     }
 
     #region START BATTLE
@@ -80,24 +93,17 @@ public class BattleSystem : MonoBehaviour
         //Setup Monsters
         playerUnit.SetMonster(playerTeam.GetHealthyZori(), true);
         enemyUnit.SetMonster(wildZori, true);
-        
+
         //Setup HUD
-        playerHUD.Player.Init(playerUnit.CurMonster);
-        enemyHUD.Enemy.Init(enemyUnit.CurMonster);
+        HUD.Instance.BattleHUD.Player.Init(playerUnit.CurMonster);
+        HUD.Instance.BattleHUD.Enemy.Init(enemyUnit.CurMonster);
 
         //Setup Techs
-        for (int i = 0; i < HUD.Instance.Selector.ActionBtn.Length; i++)
-        {
-            if (i > playerUnit.CurMonster.Techs.Length)
-                break;
-
-            if (playerUnit.CurMonster.Techs[i] == null)
-                break;
-
-            HUD.Instance.Selector.ActionBtn[i].SetTech(playerUnit.CurMonster.Techs[i]);
-        }
+        SetUpTechs();
 
         dialogBox.AddDialogue($"A wild {enemyUnit.CurMonster.Nickname} appeared!");
+
+        HUD.Instance.ActivateBattleHUD(true);
 
         yield return new WaitForSeconds(dialogBox.ReturnDuration());
 
@@ -112,27 +118,101 @@ public class BattleSystem : MonoBehaviour
         state = BattleState.ActionSelect;
         dialogBox.AddDialogue("What will you do?");
 
+        SetUpTechs();
+
+        switch (playerUnit.CurMonster.Affliction)
+        {
+            case e_Afflictions.FREEZE:
+                if (_playerAfflictedTurn == 0)
+                {
+                    _playerAfflictedTurn = 2;
+                }
+                
+                _playerActionState = BattleAction.Afflicted;
+
+                Debug.Log("You cant attack because you are " + e_Afflictions.FREEZE.ToString());
+                return;
+            case e_Afflictions.SLEEP:
+                if (_playerAfflictedTurn == 0)
+                {
+                    _playerAfflictedTurn = 5;
+                }
+
+                _playerActionState = BattleAction.Afflicted;
+
+                Debug.Log("You cant attack because you are " + e_Afflictions.SLEEP.ToString());
+                return;
+            case e_Afflictions.KO:
+                Debug.Log("You cant attack because you are " + e_Afflictions.KO.ToString());
+                return;
+            default:
+                break;
+        }
+
         HUD.Instance.ActivateBattleHUD(true);
     }
 
-    public void OnTechSelected(int newTech)
+    private void SetUpTechs()
     {
-        _playerActionState = BattleAction.Tech;
+        //Clear all the buttons
+        for (int i = 0; i < HUD.Instance.Selector.ActionBtn.Length; i++)
+        {
+            HUD.Instance.Selector.ActionBtn[i].Clear();
+        }
 
-        state = BattleState.ResolveTurn;
+        //Set the techs
+        for (int i = 0; i < HUD.Instance.Selector.ActionBtn.Length; i++)
+        {
+            BattleSelector.Buttons button = HUD.Instance.Selector.ActionBtn[i];
+            obj_Techs tech = playerUnit.CurMonster.Techs[i];
 
-        playerUnit.SetTech(playerUnit.CurMonster.Techs[newTech]);
+            if (tech == null) return;
 
-        StartCoroutine(ResolveTurn(_playerActionState));
+            if(tech.Information.Stamina > playerUnit.CurMonster.Stamina)
+            {
+                button.Clear();
+            }
+            else
+            {
+                button.SetTech(tech);
+            }
+        }
     }
 
-    public void OnSwitchSelected(Monsters newZori)
+    private void EnemyTech()
     {
-        state = BattleState.ResolveTurn;
+        switch (enemyUnit.CurMonster.Affliction)
+        {
+            case e_Afflictions.FREEZE:
+                if (_enemyAfflictedTurn == 0)
+                {
+                    _enemyAfflictedTurn = 2;
+                }
 
-        _switchPlayerMonster = newZori;
+                _enemyActionState = BattleAction.Afflicted;
 
-        StartCoroutine(ResolveTurn(_playerActionState));
+                Debug.Log("Enemy cant attack because they are " + e_Afflictions.FREEZE.ToString());
+                return;
+            case e_Afflictions.SLEEP:
+                if (_enemyAfflictedTurn == 0)
+                {
+                    _enemyAfflictedTurn = 5;
+                }
+
+                _enemyActionState = BattleAction.Afflicted;
+
+                Debug.Log("Enemy cant attack because they are " + e_Afflictions.SLEEP.ToString());
+                return;
+            case e_Afflictions.KO:
+                Debug.Log("Enemy cant attack because they are " + e_Afflictions.KO.ToString());
+                return;
+            default:
+                break;
+        }
+
+        _enemyActionState = BattleAction.Tech;
+
+        enemyUnit.SetTech(enemyUnit.CurMonster.Techs[0]);
     }
 
     public void OnActionButtonPress(BattleAction action)
@@ -142,21 +222,38 @@ public class BattleSystem : MonoBehaviour
     #endregion ACTION SELECTION
 
     #region MOVE SELECTION
+    public void OnTechSelected(int newTech)
+    {
+        _playerActionState = BattleAction.Tech;
 
+        state = BattleState.ResolveTurn;
+
+        playerUnit.SetTech(playerUnit.CurMonster.Techs[newTech]);
+
+        HUD.Instance.BattleHUD.SetActiveSelector(false);
+        HUD.Instance.BattleHUD.SetActiveTechSelector(false);
+
+        ResolveTurn(_playerActionState);
+    }
+
+    public void OnSwitchSelected(Monsters newZori)
+    {
+        _playerActionState = BattleAction.Switch;
+
+        state = BattleState.ResolveTurn;
+
+        _switchPlayerMonster = newZori;
+
+        StartCoroutine(ResolveTurn(_playerActionState));
+    }
     #endregion MOVE SELECTION
 
     #region RESOLVE TURN
-
-    private void EnemyTech()
-    {
-        _enemyActionState = BattleAction.Tech;
-        state = BattleState.ResolveTurn;
-
-        enemyUnit.SetTech(enemyUnit.CurMonster.Techs[0]);
-    }
     
     private IEnumerator ResolveTurn(BattleAction playerAction)
     {
+        if (state != BattleState.ResolveTurn) return null;
+
         switch (playerAction)
         {
             case BattleAction.Tech:
@@ -200,13 +297,25 @@ public class BattleSystem : MonoBehaviour
         int playerSpeed = playerUnit.CurMonster.Stats.Speed;
         int enemySpeed = enemyUnit.CurMonster.Stats.Speed;
         
-        if(playerUnit.CurMonster.Stats.Speed >= enemyUnit.CurMonster.Stats.Speed)
+        if(playerUnit.CurMonster.Affliction == e_Afflictions.PARALYSIS)
+        {
+            playerSpeed = playerSpeed / 2;
+        }
+
+        if (enemyUnit.CurMonster.Affliction == e_Afflictions.PARALYSIS)
+        {
+            enemySpeed = enemySpeed / 2;
+        }
+
+        if (playerUnit.CurMonster.Stats.Speed >= enemyUnit.CurMonster.Stats.Speed)
         {
             PlayerTurn();
+            return;
         }
         else if (playerUnit.CurMonster.Stats.Speed < enemyUnit.CurMonster.Stats.Speed)
         {
             EnemyTurn();
+            return;
         }
         else if (playerSpeed == enemySpeed)
         {
@@ -243,9 +352,14 @@ public class BattleSystem : MonoBehaviour
         //Deal damage to the Target
         target.CurMonster.Damage(dmg);
 
-        //yield return enemyHUD.UpdateHP();
+        if(dmg > 0 && target.CurMonster.Affliction == e_Afflictions.SLEEP)
+        {
+            target.CurMonster.SetAffliction(e_Afflictions.NONE);
 
-        //yield return ShowDamageDetails(damageDetails);
+            Debug.Log(target.CurMonster.Nickname + " " + "is waking up");
+        }
+
+        CheckForEffects(tech, target);
 
         //Check KO Status
         if (target.CurMonster.Affliction.Equals(e_Afflictions.KO))
@@ -259,12 +373,104 @@ public class BattleSystem : MonoBehaviour
 
         CheckNextTurn();
     }
+    
+    private IEnumerator RunAfterTurn(ActiveMonster playerUnit, ActiveMonster enemyUnit)
+    {
+        if (playerUnit.CurMonster.Affliction != e_Afflictions.NONE)
+        {
+            switch (playerUnit.CurMonster.Affliction)
+            {
+                case e_Afflictions.BURN:
+                    int burnDmg = Mathf.FloorToInt(playerUnit.CurMonster.Stats.MaxHp * 0.05f);
+
+                    playerUnit.CurMonster.Damage(burnDmg);
+                    break;
+                case e_Afflictions.POISON:
+                    float percentValue = 0.05f * (1 + _playerAfflictedTurn);
+
+                    int poisonDmg = Mathf.FloorToInt(playerUnit.CurMonster.Stats.MaxHp * percentValue);
+
+                    playerUnit.CurMonster.Damage(poisonDmg);
+
+                    if (playerUnit.CurMonster.Affliction == e_Afflictions.SLEEP)
+                    {
+                        playerUnit.CurMonster.SetAffliction(e_Afflictions.NONE);
+
+                        Debug.Log(playerUnit.CurMonster.Nickname + " " + "is waking up");
+                    }
+
+                    _playerAfflictedTurn++;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if (enemyUnit.CurMonster.Affliction != e_Afflictions.NONE)
+        {
+            switch (enemyUnit.CurMonster.Affliction)
+            {
+                case e_Afflictions.BURN:
+                    int burnDmg = Mathf.FloorToInt(enemyUnit.CurMonster.Stats.MaxHp * 0.05f);
+
+                    enemyUnit.CurMonster.Damage(burnDmg);
+                    break;
+                case e_Afflictions.POISON:
+                    float percentValue = 0.05f * (1 + _enemyAfflictedTurn);
+
+                    int poisonDmg = Mathf.FloorToInt(enemyUnit.CurMonster.Stats.MaxHp * percentValue);
+
+                    enemyUnit.CurMonster.Damage(poisonDmg);
+
+                    if (enemyUnit.CurMonster.Affliction == e_Afflictions.SLEEP)
+                    {
+                        enemyUnit.CurMonster.SetAffliction(e_Afflictions.NONE);
+
+                        Debug.Log(enemyUnit.CurMonster.Nickname + " " + "is waking up");
+                    }
+
+                    _enemyAfflictedTurn++;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return null;
+    }
     #endregion RESOLVE TURN
 
     #region BUSY
     
     private void PlayerTurn()
     {
+        state = BattleState.Busy;
+
+        if(_playerActionState == BattleAction.Afflicted)
+        {
+            switch (playerUnit.CurMonster.Affliction)
+            {
+                case e_Afflictions.FREEZE:
+                    if (_playerAfflictedTurn <= 0)
+                        playerUnit.CurMonster.SetAffliction(e_Afflictions.NONE);
+                    else
+                        _playerAfflictedTurn--;
+                    break;
+                case e_Afflictions.SLEEP:
+                    if (_playerAfflictedTurn <= 0)
+                        playerUnit.CurMonster.SetAffliction(e_Afflictions.NONE);
+                    else
+                        _playerAfflictedTurn--;
+                    break;
+                default:
+                    break;
+            }
+
+            CheckNextTurn();
+
+            _playerTurnEnded = true;
+        }
+
         switch (_playerActionState)
         {
             case BattleAction.Tech:
@@ -284,6 +490,35 @@ public class BattleSystem : MonoBehaviour
 
     private void EnemyTurn()
     {
+        state = BattleState.Busy;
+
+        EnemyTech();
+
+        if (_enemyActionState == BattleAction.Afflicted)
+        {
+            switch (enemyUnit.CurMonster.Affliction)
+            {
+                case e_Afflictions.FREEZE:
+                    if (_enemyAfflictedTurn <= 0)
+                        enemyUnit.CurMonster.SetAffliction(e_Afflictions.NONE);
+                    else
+                        _enemyAfflictedTurn--;
+                    break;
+                case e_Afflictions.SLEEP:
+                    if (_enemyAfflictedTurn <= 0)
+                        enemyUnit.CurMonster.SetAffliction(e_Afflictions.NONE);
+                    else
+                        _enemyAfflictedTurn--;
+                    break;
+                default:
+                    break;
+            }
+
+            _enemyTurnEnded = true;
+
+            CheckNextTurn();
+        }
+
         switch (_enemyActionState)
         {
             case BattleAction.Tech:
@@ -313,21 +548,98 @@ public class BattleSystem : MonoBehaviour
         CheckNextTurn();
     }
 
+    private void CheckForEffects(obj_Techs tech, ActiveMonster unit)
+    {
+        e_Afflictions techAffliction = tech.Extra.Effect.affliction;
+        e_Types techType = tech.Information.Type;
+
+        Monsters target = unit.CurMonster;
+
+        if (techAffliction == e_Afflictions.NONE) return;
+
+        if (target.Affliction != e_Afflictions.NONE) return;
+
+        switch (techAffliction)
+        {
+            case e_Afflictions.PARALYSIS:
+                if (target.Base.Types[0] == e_Types.ELECTRO || target.Base.Types[1] == e_Types.ELECTRO) return;
+
+                Debug.Log(target.Nickname + " " + "is" + " " + e_Afflictions.PARALYSIS.ToString());
+
+                target.SetAffliction(e_Afflictions.PARALYSIS);
+                break;
+            case e_Afflictions.BURN:
+                if (target.Base.Types[0] == e_Types.PYRO || target.Base.Types[1] == e_Types.PYRO) return;
+
+                Debug.Log(target.Nickname + " " + "is" + " " + e_Afflictions.BURN.ToString());
+
+                target.SetAffliction(e_Afflictions.BURN);
+                break;
+            case e_Afflictions.FREEZE:
+                if (target.Base.Types[0] == e_Types.CRYO || target.Base.Types[1] == e_Types.CRYO) return;
+
+                if(unit.ColdCount >= 2)
+                {
+                    Debug.Log(target.Nickname + " " + "is" + " " + e_Afflictions.FREEZE.ToString());
+
+                    unit.ColdCount = 0;
+
+                    target.SetAffliction(e_Afflictions.FREEZE);
+                    break;
+                }
+                else if (unit.ColdCount < 2)
+                {
+                    Debug.Log(target.Nickname + " " + "is" + " " + "freezing !");
+
+                    unit.ColdCount++;
+                }
+                break;
+            case e_Afflictions.POISON:
+                if (target.Base.Types[0] == e_Types.VENO || target.Base.Types[1] == e_Types.VENO) return;
+
+                Debug.Log(target.Nickname + " " + "is" + " " + e_Afflictions.POISON.ToString());
+
+                target.SetAffliction(e_Afflictions.POISON);
+                break;
+            case e_Afflictions.SLEEP:
+                if (target.Base.Types[0] == e_Types.MENTAL || target.Base.Types[1] == e_Types.MENTAL) return;
+
+                Debug.Log(target.Nickname + " " + "is" + " " + e_Afflictions.SLEEP.ToString());
+
+                target.SetAffliction(e_Afflictions.SLEEP);
+                break;
+            default:
+                break;
+        }
+
+    }
+
     private void CheckNextTurn()
     {
-        if(_playerTurnEnded == true)
+        if (_playerTurnEnded == true && _enemyTurnEnded == true)
+        {
+            _playerTurnEnded = false;
+            _enemyTurnEnded = false;
+
+            RunAfterTurn(playerUnit, enemyUnit);
+
+            ActionSelect();
+
+            return;
+        }
+
+        if (_playerTurnEnded == true)
         {
             EnemyTurn();
+
+            return;
         }
 
         if(_enemyTurnEnded == true)
         {
             PlayerTurn();
-        }
 
-        if (_playerTurnEnded == true && _enemyTurnEnded == true)
-        {
-            ActionSelect();
+            return;
         }
     }
     #endregion BUSY
@@ -340,7 +652,13 @@ public class BattleSystem : MonoBehaviour
     private void BattleOver(bool value)
     {
         state = BattleState.BattleOver;
-        OnBattleOver(value);
+
+        //OnBattleOver(value);
+    }
+
+    private void GainXP(ActiveMonster unit)
+    {
+        playerUnit.CurMonster.AddExperience(unit.CurMonster.Base.GivenXp);
     }
 
     private void CheckForBattleOver(ActiveMonster faintedUnit)
@@ -355,11 +673,31 @@ public class BattleSystem : MonoBehaviour
             }
             else
             {
+                GameManager.Instance.LoadWorldScene();
+
                 BattleOver(false);
             }
         }
+
+        /*if (faintedUnit.IsNpc)
+        {
+            GainXP(faintedUnit);
+
+            Monsters nextZori = NpcTeam.GetHealthyZori();
+
+
+            else
+            {
+                GameManager.Instance.LoadWorldScene();
+                BattleOver(false);
+            }
+        }*/
         else
         {
+            GainXP(faintedUnit);
+
+            GameManager.Instance.LoadWorldScene();
+
             BattleOver(true);
         }
     }
@@ -368,6 +706,11 @@ public class BattleSystem : MonoBehaviour
     #region Calculate Damage Done
     private static int DealDamage(ActiveMonster activeSender, ActiveMonster activeReceiver)
     {
+        if(activeSender.TechUsed.Extra.Style == e_Styles.TACTIC)
+        {
+            return 0;
+        }
+
         float typeMult = TypeChart.GetEffectiveness(activeSender.TechUsed.Information.Type, activeReceiver.CurMonster.Base.Types[0]) *
                                 TypeChart.GetEffectiveness(activeSender.TechUsed.Information.Type, activeReceiver.CurMonster.Base.Types[1]);
 
@@ -392,9 +735,22 @@ public class BattleSystem : MonoBehaviour
         switch (tech.Extra.Style)
         {
             case e_Styles.PHYSIC:
-                return (float)sender.Stats.Atk / (float)receiver.Stats.Def;
+                float senderAtk = sender.Stats.Atk;
+
+                if(sender.Affliction == e_Afflictions.BURN)
+                {
+                    senderAtk = senderAtk - (senderAtk * 0.2f);
+                }
+
+                return (float)senderAtk / (float)receiver.Stats.Def;
             case e_Styles.SPECIAL:
-                return (float)sender.Stats.SpeAtk / (float)receiver.Stats.SpeDef;
+                float senderSpeAtk = sender.Stats.Atk;
+
+                if (sender.Affliction == e_Afflictions.BURN)
+                {
+                    senderSpeAtk = senderSpeAtk - (senderSpeAtk * 0.2f);
+                }
+                return (float)senderSpeAtk / (float)receiver.Stats.SpeDef;
         }
 
         return 1;
