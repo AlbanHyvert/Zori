@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Networking.Types;
 using static UnityEngine.GraphicsBuffer;
 
 public enum BattleState
@@ -106,6 +107,10 @@ public class BattleSystem : MonoBehaviour
         HUD.Instance.ActivateBattleHUD(true);
 
         yield return new WaitForSeconds(dialogBox.ReturnDuration());
+
+        OpenPartyScreen();
+
+        HUD.Instance.ActivateSwitch(false);
 
         ActionSelect();
     }
@@ -236,15 +241,46 @@ public class BattleSystem : MonoBehaviour
         ResolveTurn(_playerActionState);
     }
 
-    public void OnSwitchSelected(Monsters newZori)
+    public void OnSwitchSelected(int zoriIndex)
     {
         _playerActionState = BattleAction.Switch;
 
         state = BattleState.ResolveTurn;
 
-        _switchPlayerMonster = newZori;
+        _switchPlayerMonster = Player.Instance.Inventory.TeamHolder.Team[zoriIndex];
 
-        StartCoroutine(ResolveTurn(_playerActionState));
+        HUD.Instance.ActivateSwitch(false);
+
+        ResolveTurn(_playerActionState);
+    }
+    
+    private void OpenPartyScreen()
+    {
+        //Clear all set monsters
+        for (int i = 0; i < HUD.Instance.UISwitch.ActionButton.Length; i++)
+        {
+            UI_Switch.Buttons buttons = HUD.Instance.UISwitch.ActionButton[i];
+
+            buttons.Clear();
+        }
+
+        //Set monster team
+        for (int i = 0; i < Player.Instance.Inventory.TeamHolder.Team.Count; i++)
+        {
+            UI_Switch.Buttons buttons = HUD.Instance.UISwitch.ActionButton[i];
+            Monsters monster = Player.Instance.Inventory.TeamHolder.Team[i];
+
+            if (monster != null)
+            {
+                buttons.SetMonster(monster);
+            }
+            else
+            {
+                buttons.Clear();
+            }
+        }
+
+        HUD.Instance.ActivateSwitch(true);
     }
     #endregion MOVE SELECTION
 
@@ -294,8 +330,11 @@ public class BattleSystem : MonoBehaviour
             return;
         }
 
-        int playerSpeed = playerUnit.CurMonster.Stats.Speed;
-        int enemySpeed = enemyUnit.CurMonster.Stats.Speed;
+        int playerSpeedBoost = playerUnit.CurMonster.StatsBoost.Speed;
+        int enemySpeedBoost = enemyUnit.CurMonster.StatsBoost.Speed;
+
+        int playerSpeed = Mathf.FloorToInt(playerUnit.CurMonster.Stats.Speed * playerUnit.CurMonster.StatsBoost.ReturnModificator(playerSpeedBoost));
+        int enemySpeed = Mathf.FloorToInt(enemyUnit.CurMonster.Stats.Speed * enemyUnit.CurMonster.StatsBoost.ReturnModificator(enemySpeedBoost));
         
         if(playerUnit.CurMonster.Affliction == e_Afflictions.PARALYSIS)
         {
@@ -337,6 +376,8 @@ public class BattleSystem : MonoBehaviour
     //Deal Damage to the target by the given Source
     IEnumerator RunTech(ActiveMonster source, ActiveMonster target, obj_Techs tech)
     {
+        CheckForStatsBoost(source, target, tech);
+
         //Update Source Stamina
         source.CurMonster.Cost(tech.Information.Stamina);
 
@@ -477,7 +518,7 @@ public class BattleSystem : MonoBehaviour
                 StartCoroutine(RunTech(playerUnit, enemyUnit, playerUnit.TechUsed));
                 break;
             case BattleAction.Switch:
-                SwitchZori(playerUnit, _switchPlayerMonster);
+                StartCoroutine(SwitchZori(playerUnit, _switchPlayerMonster));
                 break;
             case BattleAction.Item:
                 break;
@@ -541,9 +582,14 @@ public class BattleSystem : MonoBehaviour
     {
         unit.DestroyModel();
 
+        unit.CurMonster.StatsBoost.Reset();
+        unit.CurMonster.Regeneration(unit.CurMonster.Stats.MaxStamina);
+
         yield return new WaitForSecondsRealtime(1);
 
-        unit.SetMonster(newMonster);
+        unit.SetMonster(newMonster, true);
+
+        HUD.Instance.BattleHUD.Player.Init(newMonster);
 
         CheckNextTurn();
     }
@@ -614,6 +660,41 @@ public class BattleSystem : MonoBehaviour
 
     }
 
+    private void CheckForStatsBoost(ActiveMonster source, ActiveMonster target, obj_Techs tech)
+    {
+        int atk = 0;
+        int def = 0;
+        int speAtk = 0;
+        int speDef = 0;
+        int speed = 0;
+
+        switch (tech.Extra.Target)
+        {
+            case e_Targets.SELF:
+                atk = tech.Extra.Effect.statsBoost.Atk;
+                def = tech.Extra.Effect.statsBoost.Def;
+                speAtk = tech.Extra.Effect.statsBoost.SpAtk;
+                speDef = tech.Extra.Effect.statsBoost.SpDef;
+                speed = tech.Extra.Effect.statsBoost.Speed;
+
+                source.CurMonster.StatsBoost.UpdateBoost(atk, def, speAtk, speDef, speed);
+                break;
+            case e_Targets.OPPONENT:
+                atk = tech.Extra.Effect.statsBoost.Atk;
+                def = tech.Extra.Effect.statsBoost.Def;
+                speAtk = tech.Extra.Effect.statsBoost.SpAtk;
+                speDef = tech.Extra.Effect.statsBoost.SpDef;
+                speed = tech.Extra.Effect.statsBoost.Speed;
+
+                target.CurMonster.StatsBoost.UpdateBoost(atk, def, speAtk, speDef, speed);
+                break;
+            case e_Targets.ANY:
+                break;
+            default:
+                break;
+        }
+    }
+
     private void CheckNextTurn()
     {
         if (_playerTurnEnded == true && _enemyTurnEnded == true)
@@ -669,7 +750,7 @@ public class BattleSystem : MonoBehaviour
 
             if (nextZori != null)
             {
-                //OpenPartyScreen();
+                OpenPartyScreen();
             }
             else
             {
@@ -742,7 +823,12 @@ public class BattleSystem : MonoBehaviour
                     senderAtk = senderAtk - (senderAtk * 0.2f);
                 }
 
-                return (float)senderAtk / (float)receiver.Stats.Def;
+                int sdAtk = sender.StatsBoost.Atk;
+                int rcDef = receiver.StatsBoost.Def;
+
+                return (float)(senderAtk * sender.StatsBoost.ReturnModificator(sdAtk)) / 
+                    (float)(receiver.Stats.Def * receiver.StatsBoost.ReturnModificator(rcDef));
+
             case e_Styles.SPECIAL:
                 float senderSpeAtk = sender.Stats.Atk;
 
@@ -750,7 +836,12 @@ public class BattleSystem : MonoBehaviour
                 {
                     senderSpeAtk = senderSpeAtk - (senderSpeAtk * 0.2f);
                 }
-                return (float)senderSpeAtk / (float)receiver.Stats.SpeDef;
+
+                int sdSpeAtk = sender.StatsBoost.SpAtk;
+                int rcSpeDef = receiver.StatsBoost.SpDef;
+
+                return (float)(senderSpeAtk * sender.StatsBoost.ReturnModificator(sdSpeAtk)) /
+                    (float)(receiver.Stats.SpeDef * receiver.StatsBoost.ReturnModificator(rcSpeDef));
         }
 
         return 1;

@@ -51,4 +51,4 @@ MonoBehaviour:
   _givenXp: 300
   _learnableTechs:
   - Level: 1
-    Techs: {fileID: 11400000, guid: 10d71c58734e6a44d9e35109a0a40704, type: 2}
+    Techs: {fileID: 11400000, guid: 62f26a15805e48340a2c2608b9da7bf2, type: 2}

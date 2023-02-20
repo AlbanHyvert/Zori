@@ -6,8 +6,6 @@ public class UI_Switch : MonoBehaviour
 {
     [SerializeField] private Buttons[] _buttons = new Buttons[4];
 
-    private BattleSystem _battleSystem;
-
     public Buttons[] ActionButton
         => _buttons;
 
@@ -30,7 +28,7 @@ public class UI_Switch : MonoBehaviour
             monster = newMonster;
             
             name.text = monster.Nickname;
-            //level.text = monster.Level.ToString();
+            level.text = monster.Level.ToString();
             //Set Icon
             //stamina.text = monster.Stamina.ToString();
 
@@ -41,23 +39,10 @@ public class UI_Switch : MonoBehaviour
         {
             monster = null;
             
-            name.text = string.Empty;
-            //level.text = string.Empty;
+            name.text = "- - - -";
+            level.text = "00";
             //Set Icon
             //stamina.text = "00";
         }
-    }
-
-    public BattleSystem SetBattleSystem(BattleSystem battleSystem)
-        => _battleSystem = battleSystem;
-
-    public void OnSwitch(int i)
-    {
-         Monsters monster = _buttons[i].Monster;
-
-        if(monster == null)
-            return;
-
-       // _battleSystem.SetNewMonsters(monster);
     }
 }
