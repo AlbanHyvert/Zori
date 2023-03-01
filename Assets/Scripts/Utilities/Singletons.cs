@@ -1,46 +1,49 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
- public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
+public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
+{
+    #region Fields
+    private static T _instance = null;
+    #endregion Fields
+
+    #region Properties
+    public static T Instance
     {
-        #region Fields
-        private static T _instance = null;
-        #endregion Fields
-
-        #region Properties
-        public static T Instance
+        get
         {
-            get
+
+            if (_instance == null)
             {
-
-                if (_instance == null)
-                    {
-                        return _instance = FindObjectOfType<T>();
-                    }
-                    
-                    if (_instance == null)
-                    {
-                        GameObject singletonObject = new GameObject();
-
-                        _instance = singletonObject.AddComponent<T>();
-
-                        singletonObject.name = typeof(T).ToString() + "(Singleton)";
-
-                        DontDestroyOnLoad(singletonObject);
-                    }
-                    return _instance;
+                return _instance = FindObjectOfType<T>();
             }
-        }
-        #endregion Properties
+                    
+            if (_instance == null)
+            {
+                if (_instance != null) return _instance;
 
-        #region Methods
-        protected virtual void Awake()
-        {
-            DontDestroyOnLoad(this);
-        }
+                GameObject singletonObject = new GameObject();
 
-        protected virtual void OnDestroy()
-        {
-            _instance = null;
+                _instance = singletonObject.AddComponent<T>();
+
+                singletonObject.name = typeof(T).ToString() + "(Singleton)";
+
+                DontDestroyOnLoad(singletonObject);
+            }
+                return _instance;
         }
-        #endregion Methods
     }
+    #endregion Properties
+    
+    #region Methods
+    protected virtual void Awake()
+    {
+        DontDestroyOnLoad(this);
+    }
+    
+    protected virtual void OnDestroy()
+    {
+        _instance = null;
+    }
+    #endregion Methods
+}

@@ -27,6 +27,11 @@ public class BattleHUD : MonoBehaviour
     public void SetActiveEnemyUi(bool value)
         => _uiEnemy.SetActive(value);
 
+    public void OnRun()
+    {
+        GameManager.Instance.LoadWorldScene();
+    }
+
 #region Structs
     [System.Serializable]
     public struct PlayerHUD

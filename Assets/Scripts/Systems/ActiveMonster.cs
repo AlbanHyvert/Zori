@@ -6,12 +6,17 @@ public class ActiveMonster : MonoBehaviour
     
     private GameObject _model = null;
     private Monsters _monster = null;
+    private Monsters _newMonster = null;
     private obj_Techs _techUsed = null;
+    private int _afflictedTurn = 0;
 
     private int _coldCount = 0;
 
-    public Monsters CurMonster
+    public Monsters Monster
         => _monster;
+    
+    public Monsters NewMonster
+    => _newMonster;
 
     public bool IsPlayer
         => _isPlayer;
@@ -21,6 +26,8 @@ public class ActiveMonster : MonoBehaviour
 
     public int ColdCount
     { get => _coldCount; set => _coldCount = value; }
+    public int AfflictedTurn
+    { get => _afflictedTurn; set => _afflictedTurn = value; }
 
     public Monsters SetMonster(Monsters monsters, bool isToCreate = false)
     {
@@ -31,6 +38,9 @@ public class ActiveMonster : MonoBehaviour
 
         return _monster;
     }
+
+    public Monsters SetSwitch(Monsters monster)
+    => _newMonster = monster;
 
     public obj_Techs SetTech(obj_Techs techs)
         => _techUsed = techs;

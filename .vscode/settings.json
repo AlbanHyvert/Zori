@@ -1,4 +1,6 @@
 {
+    "omnisharp.unityPath": "F:Programs/Unity/2020.3.40f1/Editor/Unity.exe",
+
     "files.exclude":
     {
         "**/.DS_Store":true,

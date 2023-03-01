@@ -1,17 +1,22 @@
-using System.Collections.Generic;
 using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Threading;
 
 public class GameManager : Singleton<GameManager>
 {
     [SerializeField] private float _worldSpeed = 1.5f;
+    [Space, Tooltip("UpdatePlayerLastPos in second")]
+    [SerializeField] private float _updatePlayerLastPos = 120;
 
     private float _time = 0;
+    private float _timeBeforeSave = 0;
     private Player _player = null;
 
-    private Scene _currentScene;
+    private Transform _firstPlayerSpawnPos = null;
+    private Vector3 _playerLastPosition = Vector3.zero;
+
+    public Transform FirstPlayerSpawnPos
+    { get => transform; set => _firstPlayerSpawnPos = value; }
 
 #region Properties
     public float WorldSpeed
@@ -21,7 +26,7 @@ public class GameManager : Singleton<GameManager>
     public Player GetPlayer(Player player)
     {
         if (_player != null)
-            Destroy(_player);
+            Destroy(player.gameObject);
         else
             return _player = player;
 
@@ -44,8 +49,8 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
-    private event Action _onUpdatePlayer;
-    public event Action OnUpdatePlayer
+    private event Action<float> _onUpdatePlayer;
+    public event Action<float> OnUpdatePlayer
     {
         add
         {
@@ -72,8 +77,8 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
-    private event Action _onUpdateMonster;
-    public event Action OnUpdateMonster
+    private event Action<float> _onUpdateMonster;
+    public event Action<float> OnUpdateMonster
     {
         add
         {
@@ -103,28 +108,41 @@ public class GameManager : Singleton<GameManager>
 
     private void Start()
     {
-        _currentScene = SceneManager.GetActiveScene();
+        LoadWorldScene();
     }
 
     private void FixedUpdate()
     {
         _time += _worldSpeed * UnityEngine.Time.fixedDeltaTime;
+        _timeBeforeSave += _worldSpeed * UnityEngine.Time.fixedDeltaTime;
 
-        if(_onUpdateInput != null)
+        if (_onUpdateInput != null)
             _onUpdateInput();
         
         if(_onUpdatePlayer != null)
-            _onUpdatePlayer();
+            _onUpdatePlayer(_time);
         
         if(_onUpdateMonster != null)
-            _onUpdateMonster();
+            _onUpdateMonster(_time);
         
         if(_onUpdateBattle != null)
-            _onUpdateBattle(Time);
+            _onUpdateBattle(_time);
         
         if(_onUpdateHUD != null)
-            _onUpdateHUD(Time);
+            _onUpdateHUD(_time);
+
+        if(_timeBeforeSave > _updatePlayerLastPos)
+        {
+            if(Player.Instance)
+            {
+                UpdatePlayerLastPos(Player.Instance.transform.position);
+                _timeBeforeSave = 0;
+            }
+        }
     }
+
+    public void UpdatePlayerLastPos(Vector3 pos)
+        => _playerLastPosition = pos;
 
     public void ClearTime()
         => _time = 0;
@@ -140,19 +158,24 @@ public class GameManager : Singleton<GameManager>
 
     public void LoadBattleScene()
     {
-        SceneManager.UnloadSceneAsync("EncounterScene");
+        if (SceneManager.GetSceneByName("EncounterScene") == SceneManager.GetActiveScene())
+            SceneManager.UnloadSceneAsync("EncounterScene");
 
-        SceneManager.LoadSceneAsync("BattleScene");
-
-        _currentScene = SceneManager.GetActiveScene();
+        SceneManager.LoadSceneAsync("BattleScene", LoadSceneMode.Single);
     }
 
     public void LoadWorldScene()
     {
-        SceneManager.UnloadSceneAsync("BattleScene");
+        if(SceneManager.GetSceneByName("BattleScene") == SceneManager.GetActiveScene())
+            SceneManager.UnloadSceneAsync("BattleScene");
 
-        SceneManager.LoadSceneAsync("TestScene");
+        SceneManager.LoadSceneAsync("EncounterScene", LoadSceneMode.Single);
 
-        _currentScene = SceneManager.GetActiveScene();
+        Player player = Player.Instance;
+
+        if (player != null)
+        {
+            player.ExitBattle();
+        }
     }
 }

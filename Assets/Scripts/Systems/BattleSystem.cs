@@ -1,12 +1,9 @@
 using Monster.Enum;
 using System;
 using System.Collections;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Networking.Types;
-using static UnityEngine.GraphicsBuffer;
 
-public enum BattleState
+public enum eBattleState
 {
     StartBattle,
     ActionSelect,
@@ -40,7 +37,7 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] private int _itemPriority = 15;
     [SerializeField] private int _runPriority = 20;
     [Space(10)]
-    BattleState state = BattleState.StartBattle;
+    eBattleState state = eBattleState.StartBattle;
     BattleAction _playerActionState = BattleAction.Tech;
     BattleAction _enemyActionState = BattleAction.Tech;
 
@@ -72,7 +69,7 @@ public class BattleSystem : MonoBehaviour
 
         dialogBox = HUD.Instance.DialBox;
 
-        StartBattle(Player.Instance.Inventory.TeamHolder, Player.Instance.Encounter.WildMonster);
+        StartBattle(Player.Instance.TeamHolder, Player.Instance.Encounter.WildMonster);
 
         _playerAfflictedTurn = 0;
         _enemyAfflictedTurn = 0;
@@ -96,13 +93,13 @@ public class BattleSystem : MonoBehaviour
         enemyUnit.SetMonster(wildZori, true);
 
         //Setup HUD
-        HUD.Instance.BattleHUD.Player.Init(playerUnit.CurMonster);
-        HUD.Instance.BattleHUD.Enemy.Init(enemyUnit.CurMonster);
+        HUD.Instance.BattleHUD.Player.Init(playerUnit.Monster);
+        HUD.Instance.BattleHUD.Enemy.Init(enemyUnit.Monster);
 
         //Setup Techs
         SetUpTechs();
 
-        dialogBox.AddDialogue($"A wild {enemyUnit.CurMonster.Nickname} appeared!");
+        dialogBox.AddDialogue($"A wild {enemyUnit.Monster.Nickname} appeared!");
 
         HUD.Instance.ActivateBattleHUD(true);
 
@@ -120,12 +117,12 @@ public class BattleSystem : MonoBehaviour
     private void ActionSelect()
     {
         //Set State to Action Selection
-        state = BattleState.ActionSelect;
+        state = eBattleState.ActionSelect;
         dialogBox.AddDialogue("What will you do?");
 
         SetUpTechs();
 
-        switch (playerUnit.CurMonster.Affliction)
+        switch (playerUnit.Monster.Affliction)
         {
             case e_Afflictions.FREEZE:
                 if (_playerAfflictedTurn == 0)
@@ -169,11 +166,11 @@ public class BattleSystem : MonoBehaviour
         for (int i = 0; i < HUD.Instance.Selector.ActionBtn.Length; i++)
         {
             BattleSelector.Buttons button = HUD.Instance.Selector.ActionBtn[i];
-            obj_Techs tech = playerUnit.CurMonster.Techs[i];
+            obj_Techs tech = playerUnit.Monster.Techs[i];
 
             if (tech == null) return;
 
-            if(tech.Information.Stamina > playerUnit.CurMonster.Stamina)
+            if(tech.Information.Stamina > playerUnit.Monster.Stamina)
             {
                 button.Clear();
             }
@@ -186,7 +183,7 @@ public class BattleSystem : MonoBehaviour
 
     private void EnemyTech()
     {
-        switch (enemyUnit.CurMonster.Affliction)
+        switch (enemyUnit.Monster.Affliction)
         {
             case e_Afflictions.FREEZE:
                 if (_enemyAfflictedTurn == 0)
@@ -217,7 +214,7 @@ public class BattleSystem : MonoBehaviour
 
         _enemyActionState = BattleAction.Tech;
 
-        enemyUnit.SetTech(enemyUnit.CurMonster.Techs[0]);
+        enemyUnit.SetTech(enemyUnit.Monster.Techs[0]);
     }
 
     public void OnActionButtonPress(BattleAction action)
@@ -231,9 +228,9 @@ public class BattleSystem : MonoBehaviour
     {
         _playerActionState = BattleAction.Tech;
 
-        state = BattleState.ResolveTurn;
+        state = eBattleState.ResolveTurn;
 
-        playerUnit.SetTech(playerUnit.CurMonster.Techs[newTech]);
+        playerUnit.SetTech(playerUnit.Monster.Techs[newTech]);
 
         HUD.Instance.BattleHUD.SetActiveSelector(false);
         HUD.Instance.BattleHUD.SetActiveTechSelector(false);
@@ -245,9 +242,9 @@ public class BattleSystem : MonoBehaviour
     {
         _playerActionState = BattleAction.Switch;
 
-        state = BattleState.ResolveTurn;
+        state = eBattleState.ResolveTurn;
 
-        _switchPlayerMonster = Player.Instance.Inventory.TeamHolder.Team[zoriIndex];
+        _switchPlayerMonster = Player.Instance.TeamHolder.Team[zoriIndex];
 
         HUD.Instance.ActivateSwitch(false);
 
@@ -265,10 +262,10 @@ public class BattleSystem : MonoBehaviour
         }
 
         //Set monster team
-        for (int i = 0; i < Player.Instance.Inventory.TeamHolder.Team.Count; i++)
+        for (int i = 0; i < Player.Instance.TeamHolder.Team.Count; i++)
         {
             UI_Switch.Buttons buttons = HUD.Instance.UISwitch.ActionButton[i];
-            Monsters monster = Player.Instance.Inventory.TeamHolder.Team[i];
+            Monsters monster = Player.Instance.TeamHolder.Team[i];
 
             if (monster != null)
             {
@@ -288,7 +285,7 @@ public class BattleSystem : MonoBehaviour
     
     private IEnumerator ResolveTurn(BattleAction playerAction)
     {
-        if (state != BattleState.ResolveTurn) return null;
+        if (state != eBattleState.ResolveTurn) return null;
 
         switch (playerAction)
         {
@@ -330,28 +327,28 @@ public class BattleSystem : MonoBehaviour
             return;
         }
 
-        int playerSpeedBoost = playerUnit.CurMonster.StatsBoost.Speed;
-        int enemySpeedBoost = enemyUnit.CurMonster.StatsBoost.Speed;
+        int playerSpeedBoost = playerUnit.Monster.StatsBoost.Speed;
+        int enemySpeedBoost = enemyUnit.Monster.StatsBoost.Speed;
 
-        int playerSpeed = Mathf.FloorToInt(playerUnit.CurMonster.Stats.Speed * playerUnit.CurMonster.StatsBoost.ReturnModificator(playerSpeedBoost));
-        int enemySpeed = Mathf.FloorToInt(enemyUnit.CurMonster.Stats.Speed * enemyUnit.CurMonster.StatsBoost.ReturnModificator(enemySpeedBoost));
+        int playerSpeed = Mathf.FloorToInt(playerUnit.Monster.Stats.Speed * playerUnit.Monster.StatsBoost.ReturnModificator(playerSpeedBoost));
+        int enemySpeed = Mathf.FloorToInt(enemyUnit.Monster.Stats.Speed * enemyUnit.Monster.StatsBoost.ReturnModificator(enemySpeedBoost));
         
-        if(playerUnit.CurMonster.Affliction == e_Afflictions.PARALYSIS)
+        if(playerUnit.Monster.Affliction == e_Afflictions.PARALYSIS)
         {
             playerSpeed = playerSpeed / 2;
         }
 
-        if (enemyUnit.CurMonster.Affliction == e_Afflictions.PARALYSIS)
+        if (enemyUnit.Monster.Affliction == e_Afflictions.PARALYSIS)
         {
             enemySpeed = enemySpeed / 2;
         }
 
-        if (playerUnit.CurMonster.Stats.Speed >= enemyUnit.CurMonster.Stats.Speed)
+        if (playerUnit.Monster.Stats.Speed >= enemyUnit.Monster.Stats.Speed)
         {
             PlayerTurn();
             return;
         }
-        else if (playerUnit.CurMonster.Stats.Speed < enemyUnit.CurMonster.Stats.Speed)
+        else if (playerUnit.Monster.Stats.Speed < enemyUnit.Monster.Stats.Speed)
         {
             EnemyTurn();
             return;
@@ -379,11 +376,11 @@ public class BattleSystem : MonoBehaviour
         CheckForStatsBoost(source, target, tech);
 
         //Update Source Stamina
-        source.CurMonster.Cost(tech.Information.Stamina);
+        source.Monster.Cost(tech.Information.Stamina);
 
         //yield return playerHUD.UpdateStam();
 
-        dialogBox.AddDialogue($"{source.CurMonster.Nickname} used {tech.Information.Name}!");
+        dialogBox.AddDialogue($"{source.Monster.Nickname} used {tech.Information.Name}!");
 
         yield return new WaitForSeconds(dialogBox.ReturnDuration());
 
@@ -391,21 +388,21 @@ public class BattleSystem : MonoBehaviour
         int dmg = DealDamage(source, target);
 
         //Deal damage to the Target
-        target.CurMonster.Damage(dmg);
+        target.Monster.Damage(dmg);
 
-        if(dmg > 0 && target.CurMonster.Affliction == e_Afflictions.SLEEP)
+        if(dmg > 0 && target.Monster.Affliction == e_Afflictions.SLEEP)
         {
-            target.CurMonster.SetAffliction(e_Afflictions.NONE);
+            target.Monster.SetAffliction(e_Afflictions.NONE);
 
-            Debug.Log(target.CurMonster.Nickname + " " + "is waking up");
+            Debug.Log(target.Monster.Nickname + " " + "is waking up");
         }
 
         CheckForEffects(tech, target);
 
         //Check KO Status
-        if (target.CurMonster.Affliction.Equals(e_Afflictions.KO))
+        if (target.Monster.Affliction.Equals(e_Afflictions.KO))
         {
-            dialogBox.AddDialogue($"{target.CurMonster.Nickname} is KO!");
+            dialogBox.AddDialogue($"{target.Monster.Nickname} is KO!");
 
             yield return new WaitForSeconds(dialogBox.ReturnDuration());
 
@@ -417,27 +414,27 @@ public class BattleSystem : MonoBehaviour
     
     private IEnumerator RunAfterTurn(ActiveMonster playerUnit, ActiveMonster enemyUnit)
     {
-        if (playerUnit.CurMonster.Affliction != e_Afflictions.NONE)
+        if (playerUnit.Monster.Affliction != e_Afflictions.NONE)
         {
-            switch (playerUnit.CurMonster.Affliction)
+            switch (playerUnit.Monster.Affliction)
             {
                 case e_Afflictions.BURN:
-                    int burnDmg = Mathf.FloorToInt(playerUnit.CurMonster.Stats.MaxHp * 0.05f);
+                    int burnDmg = Mathf.FloorToInt(playerUnit.Monster.Stats.MaxHp * 0.05f);
 
-                    playerUnit.CurMonster.Damage(burnDmg);
+                    playerUnit.Monster.Damage(burnDmg);
                     break;
                 case e_Afflictions.POISON:
                     float percentValue = 0.05f * (1 + _playerAfflictedTurn);
 
-                    int poisonDmg = Mathf.FloorToInt(playerUnit.CurMonster.Stats.MaxHp * percentValue);
+                    int poisonDmg = Mathf.FloorToInt(playerUnit.Monster.Stats.MaxHp * percentValue);
 
-                    playerUnit.CurMonster.Damage(poisonDmg);
+                    playerUnit.Monster.Damage(poisonDmg);
 
-                    if (playerUnit.CurMonster.Affliction == e_Afflictions.SLEEP)
+                    if (playerUnit.Monster.Affliction == e_Afflictions.SLEEP)
                     {
-                        playerUnit.CurMonster.SetAffliction(e_Afflictions.NONE);
+                        playerUnit.Monster.SetAffliction(e_Afflictions.NONE);
 
-                        Debug.Log(playerUnit.CurMonster.Nickname + " " + "is waking up");
+                        Debug.Log(playerUnit.Monster.Nickname + " " + "is waking up");
                     }
 
                     _playerAfflictedTurn++;
@@ -447,27 +444,27 @@ public class BattleSystem : MonoBehaviour
             }
         }
 
-        if (enemyUnit.CurMonster.Affliction != e_Afflictions.NONE)
+        if (enemyUnit.Monster.Affliction != e_Afflictions.NONE)
         {
-            switch (enemyUnit.CurMonster.Affliction)
+            switch (enemyUnit.Monster.Affliction)
             {
                 case e_Afflictions.BURN:
-                    int burnDmg = Mathf.FloorToInt(enemyUnit.CurMonster.Stats.MaxHp * 0.05f);
+                    int burnDmg = Mathf.FloorToInt(enemyUnit.Monster.Stats.MaxHp * 0.05f);
 
-                    enemyUnit.CurMonster.Damage(burnDmg);
+                    enemyUnit.Monster.Damage(burnDmg);
                     break;
                 case e_Afflictions.POISON:
                     float percentValue = 0.05f * (1 + _enemyAfflictedTurn);
 
-                    int poisonDmg = Mathf.FloorToInt(enemyUnit.CurMonster.Stats.MaxHp * percentValue);
+                    int poisonDmg = Mathf.FloorToInt(enemyUnit.Monster.Stats.MaxHp * percentValue);
 
-                    enemyUnit.CurMonster.Damage(poisonDmg);
+                    enemyUnit.Monster.Damage(poisonDmg);
 
-                    if (enemyUnit.CurMonster.Affliction == e_Afflictions.SLEEP)
+                    if (enemyUnit.Monster.Affliction == e_Afflictions.SLEEP)
                     {
-                        enemyUnit.CurMonster.SetAffliction(e_Afflictions.NONE);
+                        enemyUnit.Monster.SetAffliction(e_Afflictions.NONE);
 
-                        Debug.Log(enemyUnit.CurMonster.Nickname + " " + "is waking up");
+                        Debug.Log(enemyUnit.Monster.Nickname + " " + "is waking up");
                     }
 
                     _enemyAfflictedTurn++;
@@ -481,25 +478,24 @@ public class BattleSystem : MonoBehaviour
     }
     #endregion RESOLVE TURN
 
-    #region BUSY
-    
+    #region BUSY  
     private void PlayerTurn()
     {
-        state = BattleState.Busy;
+        state = eBattleState.Busy;
 
         if(_playerActionState == BattleAction.Afflicted)
         {
-            switch (playerUnit.CurMonster.Affliction)
+            switch (playerUnit.Monster.Affliction)
             {
                 case e_Afflictions.FREEZE:
                     if (_playerAfflictedTurn <= 0)
-                        playerUnit.CurMonster.SetAffliction(e_Afflictions.NONE);
+                        playerUnit.Monster.SetAffliction(e_Afflictions.NONE);
                     else
                         _playerAfflictedTurn--;
                     break;
                 case e_Afflictions.SLEEP:
                     if (_playerAfflictedTurn <= 0)
-                        playerUnit.CurMonster.SetAffliction(e_Afflictions.NONE);
+                        playerUnit.Monster.SetAffliction(e_Afflictions.NONE);
                     else
                         _playerAfflictedTurn--;
                     break;
@@ -531,23 +527,23 @@ public class BattleSystem : MonoBehaviour
 
     private void EnemyTurn()
     {
-        state = BattleState.Busy;
+        state = eBattleState.Busy;
 
         EnemyTech();
 
         if (_enemyActionState == BattleAction.Afflicted)
         {
-            switch (enemyUnit.CurMonster.Affliction)
+            switch (enemyUnit.Monster.Affliction)
             {
                 case e_Afflictions.FREEZE:
                     if (_enemyAfflictedTurn <= 0)
-                        enemyUnit.CurMonster.SetAffliction(e_Afflictions.NONE);
+                        enemyUnit.Monster.SetAffliction(e_Afflictions.NONE);
                     else
                         _enemyAfflictedTurn--;
                     break;
                 case e_Afflictions.SLEEP:
                     if (_enemyAfflictedTurn <= 0)
-                        enemyUnit.CurMonster.SetAffliction(e_Afflictions.NONE);
+                        enemyUnit.Monster.SetAffliction(e_Afflictions.NONE);
                     else
                         _enemyAfflictedTurn--;
                     break;
@@ -582,8 +578,8 @@ public class BattleSystem : MonoBehaviour
     {
         unit.DestroyModel();
 
-        unit.CurMonster.StatsBoost.Reset();
-        unit.CurMonster.Regeneration(unit.CurMonster.Stats.MaxStamina);
+        unit.Monster.StatsBoost.Reset();
+        unit.Monster.Regeneration(unit.Monster.Stats.MaxStamina);
 
         yield return new WaitForSecondsRealtime(1);
 
@@ -599,7 +595,7 @@ public class BattleSystem : MonoBehaviour
         e_Afflictions techAffliction = tech.Extra.Effect.affliction;
         e_Types techType = tech.Information.Type;
 
-        Monsters target = unit.CurMonster;
+        Monsters target = unit.Monster;
 
         if (techAffliction == e_Afflictions.NONE) return;
 
@@ -677,7 +673,7 @@ public class BattleSystem : MonoBehaviour
                 speDef = tech.Extra.Effect.statsBoost.SpDef;
                 speed = tech.Extra.Effect.statsBoost.Speed;
 
-                source.CurMonster.StatsBoost.UpdateBoost(atk, def, speAtk, speDef, speed);
+                source.Monster.StatsBoost.UpdateBoost(atk, def, speAtk, speDef, speed);
                 break;
             case e_Targets.OPPONENT:
                 atk = tech.Extra.Effect.statsBoost.Atk;
@@ -686,7 +682,7 @@ public class BattleSystem : MonoBehaviour
                 speDef = tech.Extra.Effect.statsBoost.SpDef;
                 speed = tech.Extra.Effect.statsBoost.Speed;
 
-                target.CurMonster.StatsBoost.UpdateBoost(atk, def, speAtk, speDef, speed);
+                target.Monster.StatsBoost.UpdateBoost(atk, def, speAtk, speDef, speed);
                 break;
             case e_Targets.ANY:
                 break;
@@ -732,14 +728,14 @@ public class BattleSystem : MonoBehaviour
     #region BATTLE OVER
     private void BattleOver(bool value)
     {
-        state = BattleState.BattleOver;
+        state = eBattleState.BattleOver;
 
         //OnBattleOver(value);
     }
 
     private void GainXP(ActiveMonster unit)
     {
-        playerUnit.CurMonster.AddExperience(unit.CurMonster.Base.GivenXp);
+        playerUnit.Monster.AddExperience(unit.Monster.Base.GivenXp);
     }
 
     private void CheckForBattleOver(ActiveMonster faintedUnit)
@@ -792,14 +788,14 @@ public class BattleSystem : MonoBehaviour
             return 0;
         }
 
-        float typeMult = TypeChart.GetEffectiveness(activeSender.TechUsed.Information.Type, activeReceiver.CurMonster.Base.Types[0]) *
-                                TypeChart.GetEffectiveness(activeSender.TechUsed.Information.Type, activeReceiver.CurMonster.Base.Types[1]);
+        float typeMult = TypeChart.GetEffectiveness(activeSender.TechUsed.Information.Type, activeReceiver.Monster.Base.Types[0]) *
+                                TypeChart.GetEffectiveness(activeSender.TechUsed.Information.Type, activeReceiver.Monster.Base.Types[1]);
 
-        float modifier = CheckStab(activeSender.TechUsed, activeSender.CurMonster.Base.Types) * typeMult;
+        float modifier = CheckStab(activeSender.TechUsed, activeSender.Monster.Base.Types) * typeMult;
 
-        float checkStatsDiff = CheckStatsDiff(activeSender.TechUsed, activeSender.CurMonster, activeReceiver.CurMonster);
+        float checkStatsDiff = CheckStatsDiff(activeSender.TechUsed, activeSender.Monster, activeReceiver.Monster);
 
-        int dmg = Mathf.FloorToInt(((((((2 * activeSender.CurMonster.Level) / 5) + 2) * activeSender.TechUsed.Information.Power * checkStatsDiff) / 50 + 2) * modifier));
+        int dmg = Mathf.FloorToInt(((((((2 * activeSender.Monster.Level) / 5) + 2) * activeSender.TechUsed.Information.Power * checkStatsDiff) / 50 + 2) * modifier));
 
         return dmg;
     }

@@ -19,9 +19,12 @@ public class MonsterController : MonoBehaviour
     {
         Debug.Log("Hit " + other.name);
 
-        Player_Controller player = other.gameObject.GetComponent<Player_Controller>();
+        PlayerController player = other.gameObject.GetComponent<PlayerController>();
 
         if (player)
+        {
             Player.Instance.InitBattle(gameObject);
+            Destroy(gameObject);
+        }
     }
 }
