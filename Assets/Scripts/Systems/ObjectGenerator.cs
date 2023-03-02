@@ -3,11 +3,15 @@ using System.Collections.Generic;
 
 public class ObjectGenerator : MonoBehaviour
 {
+    [Header("TERRAIN")]
+    [SerializeField] private float _offsetFromGround = 0.2f;
     [SerializeField] private LayerMask _layerMask = 0;
     [Space(10)]
     [SerializeField] private List<Generators> _generatorList = new List<Generators>();
 
     private List<MonsterController> _monsterList = new List<MonsterController>();
+    private float terrainHeight = 0f;
+    private Vector3 terrainNormal = Vector3.up;
 
     private void Start()
     {
@@ -37,28 +41,56 @@ public class ObjectGenerator : MonoBehaviour
 
                 int rdmMonsterLevel = Random.Range(generator.minLevel, generator.maxLevel);
 
-                CheckForBounds(generator, monster, bounds, rdmMonsterIndex, ref j);
+                CheckForBounds(generator, monster, bounds, rdmMonsterLevel, ref j);
             }
         }
     }
 
     private void CheckForBounds(Generators generators, MonsterController monsterController, Bounds bounds, int level, ref int curIndex)
     {
-        Vector3 position = new Vector3(
-                Random.Range(bounds.min.x, bounds.max.x),
-                Random.Range(bounds.min.y, bounds.max.y),
-                Random.Range(bounds.min.z, bounds.max.z)
-            );
+            Vector3 position = GetRandomPosition(generators);
+
             if (!IsPositionObstructed(position, generators))
             {
                 MonsterController monster = Instantiate(monsterController, position, Quaternion.identity);
 
-                monster.OnStart(level);
+                Renderer renderer = monster.GetComponentInChildren<Renderer>();
 
+                if(renderer != null) ObjectVisibilityManager.Instance.AddRenderer(renderer);
+
+                monster.OnStart(level);
                 _monsterList.Add(monster);
             }
             else
                 curIndex --;
+    }
+
+    private Vector3 GetRandomPosition(Generators generators)
+    {
+        Vector3 spawnPos = Vector3.zero;
+    
+        // Get a random point within the collider bounds
+        spawnPos = new Vector3(
+                Random.Range(generators.coll.bounds.min.x, generators.coll.bounds.max.x),
+                generators.coll.bounds.center.magnitude,
+                Random.Range(generators.coll.bounds.min.z, generators.coll.bounds.max.z));
+    
+        // Cast a ray downwards from the random point to find the ground level
+        RaycastHit hit;
+        if (Physics.Raycast(spawnPos, Vector3.down, out hit, Mathf.Infinity, _layerMask))
+        {
+            // Adjust the spawn position by subtracting the offset from the hit point
+            spawnPos = hit.point - Vector3.up * _offsetFromGround;
+
+            return spawnPos;
+        }
+        else if (Physics.Raycast(spawnPos, Vector3.up, out hit, Mathf.Infinity, _layerMask))
+        {
+            // Adjust the spawn position by subtracting the offset from the hit point
+            spawnPos = hit.point - Vector3.down / _offsetFromGround;
+        }
+    
+        return spawnPos;
     }
 
     private bool IsPositionObstructed(Vector3 position, Generators generator)
@@ -68,15 +100,6 @@ public class ObjectGenerator : MonoBehaviour
         bool hitSomething = Physics.SphereCast(position, generator.radius, position, out RaycastHit hitInfo, generator.maxDistance, _layerMask);
         
         return hitSomething;
-        
-        /*if (Physics.Raycast(position, Vector3.down, out hit))
-        {
-            if (hit.collider.CompareTag("Terrain") || hit.collider.CompareTag("Plane"))
-            {
-                return true;
-            }
-        }
-        return false;*/
     }
 
     [System.Serializable]

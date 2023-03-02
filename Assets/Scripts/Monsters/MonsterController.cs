@@ -12,15 +12,11 @@ public class MonsterController : MonoBehaviour
 
     public void OnStart(int value)
     {
-        _data.SetLevel(value);
-        
-        _data.Init();
+        _data.Init(value);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        Debug.Log("Hit " + other.name);
-
         PlayerController player = other.gameObject.GetComponent<PlayerController>();
 
         if (player)

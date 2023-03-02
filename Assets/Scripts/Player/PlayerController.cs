@@ -21,6 +21,8 @@ public class PlayerController : MonoBehaviour
         Player.Instance.IsInBattle += InBattle;
 
         GameManager.Instance.OnUpdatePlayer += Tick;
+
+        ObjectVisibilityManager.Instance.SetCamera(_camController.Camera);
     }
 
     private void Tick(float time)
