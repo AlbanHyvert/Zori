@@ -10,8 +10,10 @@ public class MonsterController : MonoBehaviour
     public Monsters SetData(Monsters newData)
         => _data = newData;
 
-    private void Start()
+    public void OnStart(int value)
     {
+        _data.SetLevel(value);
+        
         _data.Init();
     }
 

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -29,7 +30,7 @@ public class BattleHUD : MonoBehaviour
 
     public void OnRun()
     {
-        GameManager.Instance.LoadWorldScene();
+        LoadingSceneManager.Instance.LoadLevelAsync("EncounterScene");
     }
 
 #region Structs

@@ -61,7 +61,7 @@ public class Player : Singleton<Player>
 
         _encounter.SetWild(monsters);
 
-        GameManager.Instance.LoadBattleScene();
+        LoadingSceneManager.Instance.LoadLevelAsync("BattleScene");
     }
 
     public void ExitBattle()

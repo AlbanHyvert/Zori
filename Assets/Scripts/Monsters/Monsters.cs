@@ -179,6 +179,15 @@ public class Monsters : IHealth, IStamina
            _maxExperience = maxXp;
         }
 
+    public void SetLevel(int value)
+    {
+        _level = value;
+
+        _stats.UpdateStats(Level, Base, _battlePoints);
+
+        CalculateNewMaxXp();
+    }
+
     public void UpdateLevel(int value)
     {
         _level += value;

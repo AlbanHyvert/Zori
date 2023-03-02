@@ -108,7 +108,7 @@ public class GameManager : Singleton<GameManager>
 
     private void Start()
     {
-        LoadWorldScene();
+        LoadingSceneManager.Instance.LoadLevelAsync("EncounterScene");
     }
 
     private void FixedUpdate()
@@ -154,28 +154,5 @@ public class GameManager : Singleton<GameManager>
         _onUpdateMonster = null;
         _onUpdateBattle = null;
         _onUpdateHUD = null;
-    }
-
-    public void LoadBattleScene()
-    {
-        if (SceneManager.GetSceneByName("EncounterScene") == SceneManager.GetActiveScene())
-            SceneManager.UnloadSceneAsync("EncounterScene");
-
-        SceneManager.LoadSceneAsync("BattleScene", LoadSceneMode.Single);
-    }
-
-    public void LoadWorldScene()
-    {
-        if(SceneManager.GetSceneByName("BattleScene") == SceneManager.GetActiveScene())
-            SceneManager.UnloadSceneAsync("BattleScene");
-
-        SceneManager.LoadSceneAsync("EncounterScene", LoadSceneMode.Single);
-
-        Player player = Player.Instance;
-
-        if (player != null)
-        {
-            player.ExitBattle();
-        }
     }
 }

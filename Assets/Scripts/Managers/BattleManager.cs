@@ -128,7 +128,7 @@ public class BattleManager : MonoBehaviour
 
         while(DialogueManager.Instance.IsTyping) yield return null;
 
-        //Load World Map
+        LoadingSceneManager.Instance.LoadLevelAsync("EncounterScene");
     }
 
     public IEnumerator Lost()
@@ -141,7 +141,7 @@ public class BattleManager : MonoBehaviour
 
         while(DialogueManager.Instance.IsTyping) yield return null;
 
-        //Load World Map
+        LoadingSceneManager.Instance.LoadLevelAsync("EncounterScene");
     }
 
     public void GainXP(ActiveMonster unit)

@@ -5,8 +5,6 @@ public class BattleSelector : MonoBehaviour
 {
     [SerializeField] private Buttons[] _buttons = new Buttons[4];
 
-    private BattleSystem _battleSystem = null;
-
     [System.Serializable]
     public struct Buttons
     {
@@ -47,9 +45,6 @@ public class BattleSelector : MonoBehaviour
 
     public Buttons[] ActionBtn
         => _buttons;
-
-    public BattleSystem SetBattleSystem(BattleSystem battleSystem)
-        => _battleSystem = battleSystem;
 
     public void Action(int i)
     {
