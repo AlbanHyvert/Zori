@@ -227,28 +227,22 @@ public class ResolveTurnState : BattleState
 
     private void OpenPartyScreen()
     {
-        //Clear all set monsters
-        for (int i = 0; i < HUD.Instance.UISwitch.ActionButton.Length; i++)
+        //Clear every Monsters
+        for(int i = 0; i < HUD.Instance.UISwitch.ActionButton.Length; i++)
         {
-            UI_Switch.Buttons buttons = HUD.Instance.UISwitch.ActionButton[i];
-
-            buttons.Clear();
+            HUD.Instance.UISwitch.ActionButton[i].Clear();
         }
 
-        //Set monster team
-        for (int i = 0; i < Player.Instance.TeamHolder.Team.Count; i++)
+        //Set the Monster
+        for(int i = 0; i < battleManager.PlayerTeam.Team.Count; i++)
         {
-            UI_Switch.Buttons buttons = HUD.Instance.UISwitch.ActionButton[i];
             Monsters monster = battleManager.PlayerTeam.Team[i];
 
-            if (monster != null)
-            {
-                buttons.SetMonster(monster);
-            }
-            else
-            {
-                buttons.Clear();
-            }
+            if(monster == null) return;
+
+            if(monster.Affliction == e_Afflictions.KO) return;
+
+            HUD.Instance.UISwitch.ActionButton[i].SetMonster(monster);
         }
 
         HUD.Instance.ActivateSwitch(true);

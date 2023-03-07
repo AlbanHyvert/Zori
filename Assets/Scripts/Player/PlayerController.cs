@@ -9,6 +9,14 @@ public class PlayerController : MonoBehaviour
     [Space]
     [SerializeField] private CameraController _camController = null;
 
+    private bool _isChased = false;
+
+    public bool IsChased
+        => _isChased;
+
+    public void SetIsChased(bool value)
+        => _isChased = value;
+
     private Vector3 _velocity = Vector3.zero;
 
     public Vector3 Velocity

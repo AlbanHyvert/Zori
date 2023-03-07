@@ -99,14 +99,16 @@ public class Monsters : IHealth, IStamina
     }
 #endregion Events
 
-    public void Init(int level = 1)
+    public void Init(int level = 0)
     {
         if(isInit == false)
             isInit = true;
         else
             return;
 
-        _level = level;
+        if(level > 0)
+            _level = level;
+            
 //-----------------------Set Passive & Traits-----------------------
         int rdmPassive = UnityEngine.Random.Range(0, 1);
         int rdmTrait = UnityEngine.Random.Range(0, 19);
@@ -224,6 +226,8 @@ public class Monsters : IHealth, IStamina
         {
             _hp = 0;
             _affliction = e_Afflictions.KO;
+
+            Debug.Log(_nickname +" is " + _affliction.ToString());
         }
         else
             _hp = newHp;

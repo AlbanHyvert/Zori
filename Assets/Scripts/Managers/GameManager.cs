@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GameManager : Singleton<GameManager>
 {
@@ -113,8 +112,8 @@ public class GameManager : Singleton<GameManager>
 
     private void FixedUpdate()
     {
-        _time += _worldSpeed * UnityEngine.Time.fixedDeltaTime;
-        _timeBeforeSave += _worldSpeed * UnityEngine.Time.fixedDeltaTime;
+        _time = _worldSpeed * UnityEngine.Time.fixedDeltaTime;
+        _timeBeforeSave += _time;
 
         if (_onUpdateInput != null)
             _onUpdateInput();

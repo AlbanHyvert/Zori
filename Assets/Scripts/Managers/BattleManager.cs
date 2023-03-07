@@ -44,15 +44,10 @@ public class BattleManager : MonoBehaviour
     => _enemyPriorities;
 #endregion PROPERTIES
 
-    public struct Priorities
-    {
-        public int switchPrio;
-        public int itemPrio;
-        public int RunPrio;
-    }
-
     private void Start()
     {
+        SetTeam();
+
         DialogueManager.Instance.AddTextBox(_textZone);
 
         DialogueManager.Instance.StartDialogue("A battle is about to start !");
@@ -96,6 +91,11 @@ public class BattleManager : MonoBehaviour
         SetState(new ResolveTurnState());
     }
 #endregion MOVE SELECTION
+
+    private void SetTeam()
+    {
+        _playerTeam = Player.Instance.TeamHolder;
+    }
 
     public void SetState(BattleState state) 
     {
@@ -169,5 +169,13 @@ public class BattleManager : MonoBehaviour
         SWITCH,
         RUN,
         AFFLICTED
+    }
+
+    [System.Serializable]
+    public struct Priorities
+    {
+        public int switchPrio;
+        public int itemPrio;
+        public int RunPrio;
     }
 }

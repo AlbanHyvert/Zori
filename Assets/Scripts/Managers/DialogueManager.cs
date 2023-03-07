@@ -65,11 +65,15 @@ public class DialogueManager : Singleton<DialogueManager>
             yield return new WaitForSeconds(_charDelay);
         }
 
+        yield return new WaitForSeconds(_charDelay);
+
         _isTyping = false;
     }
 
     void EndDialogue()
     {
+        StopAllCoroutines();
+
         Debug.Log("End of dialogue");
     }
 }

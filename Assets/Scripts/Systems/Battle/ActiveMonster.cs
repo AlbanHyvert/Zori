@@ -34,7 +34,13 @@ public class ActiveMonster : MonoBehaviour
         _monster = monsters;
 
         if(isToCreate == true)
+        {
             _model = Instantiate(_monster.Base.Model.Prefab, Position(), Quaternion.identity);
+
+            MonsterController controller = _model.GetComponent<MonsterController>();
+
+            if(!controller) controller.SetState(new Monster_InBattleState());
+        }
 
         return _monster;
     }

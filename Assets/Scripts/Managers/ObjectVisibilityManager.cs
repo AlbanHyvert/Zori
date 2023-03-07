@@ -21,7 +21,7 @@ public class ObjectVisibilityManager : Singleton<ObjectVisibilityManager>
 
     private void Tick(float time)
     {
-        foreach (var renderer in _rendererList)
+        foreach (Renderer renderer in _rendererList)
         {
             if(renderer == null) return;
 

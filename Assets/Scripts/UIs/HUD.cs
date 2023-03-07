@@ -37,6 +37,6 @@ public class HUD : Singleton<HUD>
 
     public void ActivateSwitch(bool value)
     {
-        //_uiSwitch.gameObject.SetActive(value);
+        _uiSwitch.gameObject.SetActive(value);
     }
 }

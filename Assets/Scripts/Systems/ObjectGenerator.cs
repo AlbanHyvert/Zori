@@ -58,7 +58,9 @@ public class ObjectGenerator : MonoBehaviour
 
                 if(renderer != null) ObjectVisibilityManager.Instance.AddRenderer(renderer);
 
-                monster.OnStart(level);
+                monster.transform.SetParent(this.transform);
+
+                monster.OnStart(level, bounds);
                 _monsterList.Add(monster);
             }
             else
@@ -72,22 +74,17 @@ public class ObjectGenerator : MonoBehaviour
         // Get a random point within the collider bounds
         spawnPos = new Vector3(
                 Random.Range(generators.coll.bounds.min.x, generators.coll.bounds.max.x),
-                generators.coll.bounds.center.magnitude,
+                generators.coll.bounds.max.y,
                 Random.Range(generators.coll.bounds.min.z, generators.coll.bounds.max.z));
-    
+
         // Cast a ray downwards from the random point to find the ground level
         RaycastHit hit;
         if (Physics.Raycast(spawnPos, Vector3.down, out hit, Mathf.Infinity, _layerMask))
         {
             // Adjust the spawn position by subtracting the offset from the hit point
             spawnPos = hit.point - Vector3.up * _offsetFromGround;
-
+            
             return spawnPos;
-        }
-        else if (Physics.Raycast(spawnPos, Vector3.up, out hit, Mathf.Infinity, _layerMask))
-        {
-            // Adjust the spawn position by subtracting the offset from the hit point
-            spawnPos = hit.point - Vector3.down / _offsetFromGround;
         }
     
         return spawnPos;
