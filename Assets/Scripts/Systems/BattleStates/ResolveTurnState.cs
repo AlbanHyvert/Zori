@@ -6,14 +6,19 @@ public class ResolveTurnState : BattleState
 {
     private bool _playerTurnEnded = false;
     private bool _enemyTurnEnded = false;
+    private HUD HUD = null;
 
     public override IEnumerator Enter()
     {
+        HUD = battleManager.HUD;
+
         _playerTurnEnded = false;
         _enemyTurnEnded = false;
 
-        HUD.Instance.BattleHUD.SetActiveSelector(false);
-        HUD.Instance.BattleHUD.SetActiveTechSelector(false);
+        HUD.BattleHUD.SetActiveSelector(false);
+        HUD.BattleHUD.SetActiveTechSelector(false);
+        HUD.BattleHUD.SetActivePlayerUi(true);
+        HUD.BattleHUD.SetActiveEnemyUi(true);
 
         ChoosePriority();
 
@@ -83,8 +88,6 @@ public class ResolveTurnState : BattleState
 
     private void CheckNextTurn()
     {
-        Debug.Log("Check Next turn");
-
         if (_playerTurnEnded == true && _enemyTurnEnded == true)
         {
             _playerTurnEnded = false;
@@ -112,16 +115,14 @@ public class ResolveTurnState : BattleState
 
     private void PlayerTurn()
     {
-        Debug.Log("Player Turn");
+        _playerTurnEnded = true;
 
         if(battleManager.PlayerAction == BattleManager.ActionType.AFFLICTED)
         {
             CheckForAffliction(battleManager.PlayerUnit);
 
             CheckNextTurn();
-
-            _playerTurnEnded = true;
-
+            
             return;
         }
 
@@ -133,6 +134,7 @@ public class ResolveTurnState : BattleState
             battleManager.StartCoroutine(RunTech(battleManager.PlayerUnit, battleManager.EnemyUnit, battleManager.PlayerUnit.TechUsed));
                 break;
             case BattleManager.ActionType.ITEM:
+            battleManager.StartCoroutine(UseItem(battleManager.PlayerUnit, battleManager.PlayerUnit.Item));
                 break;
             case BattleManager.ActionType.SWITCH:
             battleManager.StartCoroutine(SwitchZori(battleManager.PlayerUnit, battleManager.PlayerUnit.NewMonster));
@@ -142,19 +144,15 @@ public class ResolveTurnState : BattleState
             default:
             break;
         }
-
-        _playerTurnEnded = true;
     }
 
     private void EnemyTurn()
     {
-        Debug.Log("EnemyTurn");
+        _enemyTurnEnded = true;
 
         if (battleManager.EnemyAction == BattleManager.ActionType.AFFLICTED)
         {
             CheckForAffliction(battleManager.EnemyUnit);
-
-            _enemyTurnEnded = true;
 
             CheckNextTurn();
 
@@ -178,8 +176,6 @@ public class ResolveTurnState : BattleState
             default:
             break;
         }
-
-        _enemyTurnEnded = true;
     }
 
     private void CheckForBattleOver(ActiveMonster faintedUnit)
@@ -190,11 +186,11 @@ public class ResolveTurnState : BattleState
 
             if (nextZori != null)
             {
-                OpenPartyScreen();
+                battleManager.SetState(new ActionTurnState());
             }
             else
             {
-                battleManager.Lost();
+                battleManager.SetState(new LostState());
             }
         }
 
@@ -213,39 +209,19 @@ public class ResolveTurnState : BattleState
                 SwitchZori(battleManager.EnemyUnit, nextZori);
 
                 _enemyTurnEnded = true;
+
+                return false;
             }
             else
             {
                 battleManager.Victory();
+                return true;
             }
         }*/
-        else
+        if (!faintedUnit.IsPlayer)
         {
-            battleManager.Victory();
+            battleManager.SetState(new VictoryState());
         }
-    }
-
-    private void OpenPartyScreen()
-    {
-        //Clear every Monsters
-        for(int i = 0; i < HUD.Instance.UISwitch.ActionButton.Length; i++)
-        {
-            HUD.Instance.UISwitch.ActionButton[i].Clear();
-        }
-
-        //Set the Monster
-        for(int i = 0; i < battleManager.PlayerTeam.Team.Count; i++)
-        {
-            Monsters monster = battleManager.PlayerTeam.Team[i];
-
-            if(monster == null) return;
-
-            if(monster.Affliction == e_Afflictions.KO) return;
-
-            HUD.Instance.UISwitch.ActionButton[i].SetMonster(monster);
-        }
-
-        HUD.Instance.ActivateSwitch(true);
     }
 #endregion TURNS
 
@@ -262,13 +238,17 @@ public class ResolveTurnState : BattleState
 
         DialogueManager.Instance.StartDialogue($"{source.Monster.Nickname} used {tech.Information.Name}!");
 
-        while(DialogueManager.Instance.IsTyping) yield return null;
+        Debug.Log("Monster: " + source.Monster.Nickname + "is Player: " + source.IsPlayer + " Tech: " + tech.Information.Name);
 
         //Temp variable for the damage
         int dmg = DealDamage(source, target);
 
+         while(DialogueManager.Instance.IsTyping) yield return null;
+
         //Deal damage to the Target
         target.Monster.Damage(dmg);
+
+        while(target.UI.HasUpdated == false) yield return null;
 
         if(dmg > 0 && target.Monster.Affliction == e_Afflictions.SLEEP)
         {
@@ -283,13 +263,17 @@ public class ResolveTurnState : BattleState
         if (target.Monster.Affliction.Equals(e_Afflictions.KO))
         {
             DialogueManager.Instance.StartDialogue($"{target.Monster.Nickname} is KO!");
-
-            while(DialogueManager.Instance.IsTyping) yield return null;
-
+            
             CheckForBattleOver(target);
+
+             while(DialogueManager.Instance.IsTyping) yield return null;
+
+            yield return null;
         }
 
         CheckNextTurn();
+
+        yield return null;
     }
 
     //Switch
@@ -310,7 +294,27 @@ public class ResolveTurnState : BattleState
 
         unit.SetMonster(newMonster, true);
 
-        HUD.Instance.BattleHUD.Player.Init(newMonster);
+        CheckNextTurn();
+    }
+
+    //Item
+    private IEnumerator UseItem(ActiveMonster unit, obj_Item item)
+    {
+        Debug.Log("Use Item");
+
+        switch(item.Category)
+        {
+            case e_Category.Medicine:
+                DialogueManager.Instance.StartDialogue("Player is using " + item.ReturnName() + " on " + unit.Monster.Nickname);
+
+                while(DialogueManager.Instance.IsTyping) yield return null;
+
+                item.Use(unit.Monster, Player.Instance.Inventory.ItemList);
+
+                while(unit.UI.HasUpdated == false) yield return null;
+                
+                break;
+        }
 
         CheckNextTurn();
     }
@@ -457,7 +461,7 @@ public class ResolveTurnState : BattleState
 
         float checkStatsDiff = CheckStatsDiff(activeSender.TechUsed, activeSender.Monster, activeReceiver.Monster);
 
-        int dmg = Mathf.FloorToInt(((((((2 * activeSender.Monster.Level) / 5) + 2) * activeSender.TechUsed.Information.Power * checkStatsDiff) / 50 + 2) * modifier));
+        int dmg = Mathf.FloorToInt(((((((2 * activeSender.Monster.Level) / 5) + 2) * activeSender.TechUsed.Information.ReturnPower() * checkStatsDiff) / 50 + 2) * modifier));
 
         return dmg;
     }

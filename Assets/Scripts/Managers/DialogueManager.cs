@@ -5,7 +5,9 @@ using System.Collections.Generic;
 
 public class DialogueManager : Singleton<DialogueManager>
 {
+    [SerializeField] private GameObject _dialogueBox = null;
     [SerializeField] private TextMeshProUGUI _dialogueText = null;
+    [Space(10)]
     [SerializeField] private float _charDelay = 0.05f;
 
     private Queue<string> _sentences = new Queue<string>();
@@ -15,13 +17,11 @@ public class DialogueManager : Singleton<DialogueManager>
     public bool IsTyping
     => _isTyping;
 
-    public void AddTextBox(TextMeshProUGUI textZone)
-    {
-        _dialogueText = textZone;
-    }
-
     public void StartDialogue(string[] dialogue)
     {
+        _dialogueBox.SetActive(true);
+        _dialogueText.text = string.Empty;
+
         _sentences.Clear();
 
         foreach (string sentence in dialogue)
@@ -34,6 +34,9 @@ public class DialogueManager : Singleton<DialogueManager>
 
     public void StartDialogue(string sentences)
     {
+        _dialogueBox.SetActive(true);
+        _dialogueText.text = string.Empty;
+
         _sentences.Clear();
 
         _sentences.Enqueue(sentences);
@@ -65,7 +68,9 @@ public class DialogueManager : Singleton<DialogueManager>
             yield return new WaitForSeconds(_charDelay);
         }
 
-        yield return new WaitForSeconds(_charDelay);
+        yield return new WaitForSecondsRealtime(_charDelay + 1);
+
+        DisplayNextSentence();
 
         _isTyping = false;
     }
@@ -74,7 +79,9 @@ public class DialogueManager : Singleton<DialogueManager>
     {
         StopAllCoroutines();
 
+        _dialogueBox.SetActive(false);
+        _dialogueText.text = string.Empty;
+
         Debug.Log("End of dialogue");
     }
 }
-

@@ -23,7 +23,7 @@ public class Monsters : IHealth, IStamina
     private e_Traits _trait = e_Traits.NONE;
     private Passive _passive = null;
     private bool _isChroma = false;
-    private GameObject _item = null;
+    private obj_Item _item = null;
     private int _hp = 0;
     private int _stamina = 0;
     [SerializeField] private int _experience = 0;
@@ -53,6 +53,8 @@ public class Monsters : IHealth, IStamina
         => _hp;
     public int Stamina
         => _stamina;
+    public BattlePoints BattlePoints
+        => _battlePoints;
 #endregion Properties
 
 #region  Events
@@ -146,7 +148,7 @@ public class Monsters : IHealth, IStamina
             if(tech == null)
                 return;
 
-            if(techLevel < _level)
+            if(techLevel <= _level)
             {
                 if (j >= 4)
                     return;
@@ -220,17 +222,15 @@ public class Monsters : IHealth, IStamina
     //Remove value to the Hp
     public void Damage(int value)
     {
-        int newHp = _hp - value;
+        _hp -= value;
 
-        if(newHp <= 0)
+        if(_hp <= 0)
         {
             _hp = 0;
             _affliction = e_Afflictions.KO;
 
             Debug.Log(_nickname +" is " + _affliction.ToString());
         }
-        else
-            _hp = newHp;
 
         _onUpdateHealth(_hp);
     }
@@ -238,17 +238,15 @@ public class Monsters : IHealth, IStamina
     //Add value to the Hp
     public void Heal(int value)
     {
+        _hp += value;
+
         if(_hp == 0)
         {
             _affliction = e_Afflictions.NONE;
         }
 
-        int newHp = _hp + value;
-
-        if(newHp > _stats.MaxHp)
+        if(_hp > _stats.MaxHp)
             _hp = _stats.MaxHp;
-        else
-            _hp = newHp;
 
         _onUpdateHealth(_hp);
     }
@@ -256,12 +254,10 @@ public class Monsters : IHealth, IStamina
     //Add value to the stamina
     public void Regeneration(int value)
     {
-        int newSta = _stamina + value;
+        _stamina += value;
 
-        if(newSta > _stats.MaxStamina)
+        if(_stamina > _stats.MaxStamina)
             _stamina = _stats.MaxStamina;
-        else
-            _stamina = newSta;
 
         _onUpdateStamina(_stamina);
     }
@@ -269,12 +265,10 @@ public class Monsters : IHealth, IStamina
     //Remove value to the Stamina
     public void Cost(int value)
     {
-        int newSta = _stamina - value;
+        _stamina -= value;
 
-        if(newSta < 0)
+        if(_stamina < 0)
             _stamina = 0;
-        else
-            _stamina = newSta;
 
         _onUpdateStamina(_stamina);
     }

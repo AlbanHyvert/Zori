@@ -23,6 +23,9 @@ public class LoadingSceneManager : Singleton<LoadingSceneManager>
 
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(levelName);
 
+        if(Player.Instance)
+            Player.Instance.Loaded(false);
+
         while (!asyncLoad.isDone)
         {
             float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f);
@@ -30,6 +33,9 @@ public class LoadingSceneManager : Singleton<LoadingSceneManager>
             _loadingText.text = "Loading " + (int)(progress * 100f) + "%";
             yield return null;
         }
+
+        if(Player.Instance)
+            Player.Instance.Loaded(true);
 
         _loadingScreen.SetActive(false);
 

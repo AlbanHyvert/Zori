@@ -60,4 +60,41 @@ public class BattlePoints
             break;
         }
     }
+
+    public void RemoveBp(e_BpGiven bpGiven, int value)
+    {
+        switch(bpGiven)
+        {
+            case e_BpGiven.HP :
+                _maxHp -= value;
+                if(_maxHp < 0)
+                    _maxHp = 0;
+            break;
+            case e_BpGiven.ATK :
+                _atk -= value;
+                if(_atk < 0)
+                    _atk = 0;
+            break;
+            case e_BpGiven.DEF :
+                _def -= value;
+                if(_def < 0)
+                    _def = 0;
+            break;
+            case e_BpGiven.SPATK :
+                _speAtk -= value;
+                if(_speAtk < 0)
+                    _speAtk = 0;
+            break;
+            case e_BpGiven.SPDEF :
+                _speDef -= value;
+                if(_speDef < 0)
+                        _speDef = 0;
+            break;
+            case e_BpGiven.SPEED :
+                _speed -= value;
+                if(_speed < 0)
+                    _speed = 0;
+            break;
+        }
+    }
 }

@@ -1,7 +1,8 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-public class BattleSelector : MonoBehaviour
+
+public class TechSelector : MonoBehaviour
 {
     [SerializeField] private Buttons[] _buttons = new Buttons[4];
 
@@ -45,12 +46,4 @@ public class BattleSelector : MonoBehaviour
 
     public Buttons[] ActionBtn
         => _buttons;
-
-    public void Action(int i)
-    {
-        obj_Techs tech = _buttons[i].Tech;
-
-        if(tech == null)
-            return;
-    }
 }

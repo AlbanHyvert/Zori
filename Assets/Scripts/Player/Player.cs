@@ -32,6 +32,20 @@ public class Player : Singleton<Player>
         }
     }
 
+    private event Action<bool> _isLoaded = null;
+    public event Action<bool> IsLoaded
+    {
+        add
+        {
+            _isLoaded -= value;
+            _isLoaded += value;
+        }
+        remove
+        {
+            _isLoaded -= value;
+        }
+    }
+
     protected override void Awake()
     {
         base.Awake();
@@ -62,6 +76,16 @@ public class Player : Singleton<Player>
         _encounter.SetWild(monsters);
 
         LoadingSceneManager.Instance.LoadLevelAsync("BattleScene");
+    }
+
+    public void Loaded(bool value)
+    {
+        Debug.Log("Loaded: " + value);
+
+        if(_isLoaded != null)
+        {
+            _isLoaded(value);
+        }
     }
 
     public void ExitBattle()

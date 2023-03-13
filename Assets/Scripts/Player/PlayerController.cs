@@ -1,4 +1,3 @@
-using Monster.Enum;
 using UnityEngine;
 
 [RequireComponent(typeof(Player))]
@@ -10,6 +9,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private CameraController _camController = null;
 
     private bool _isChased = false;
+    private bool _isLoaded = false;
+    private bool _isInBattle = false;
 
     public bool IsChased
         => _isChased;
@@ -27,6 +28,7 @@ public class PlayerController : MonoBehaviour
         _camController.InBattle(false);
 
         Player.Instance.IsInBattle += InBattle;
+        Player.Instance.IsLoaded += IsLoaded;
 
         GameManager.Instance.OnUpdatePlayer += Tick;
 
@@ -67,11 +69,39 @@ public class PlayerController : MonoBehaviour
     {
         _camController.InBattle(value);
 
+        _isInBattle = value;
+
         if (value == true)
         {
+            GameManager.Instance.UpdatePlayerLastPos(this.transform.position);
+
             GameManager.Instance.OnUpdatePlayer -= Tick;
+            _rb.isKinematic = false;
+            _rb.useGravity = true;
         }
         else
+        {
+            this.transform.position = GameManager.Instance.LastPosition;
+
             GameManager.Instance.OnUpdatePlayer += Tick;
+            _rb.useGravity = false;
+            _rb.isKinematic = true;
+        }
+    }
+
+    private void IsLoaded (bool value)
+    {
+        _isLoaded = value;
+
+        if(value == true)
+        {
+            _rb.isKinematic = false;
+            _rb.useGravity = true;
+        }
+        else
+        {
+            _rb.useGravity = false;
+            _rb.isKinematic = true;
+        }
     }
 }

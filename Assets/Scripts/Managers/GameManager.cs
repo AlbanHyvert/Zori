@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using UnityEngine;
 
 public class GameManager : Singleton<GameManager>
@@ -16,6 +17,9 @@ public class GameManager : Singleton<GameManager>
 
     public Transform FirstPlayerSpawnPos
     { get => transform; set => _firstPlayerSpawnPos = value; }
+
+    public Vector3 LastPosition
+        => _playerLastPosition;
 
 #region Properties
     public float WorldSpeed
@@ -153,5 +157,27 @@ public class GameManager : Singleton<GameManager>
         _onUpdateMonster = null;
         _onUpdateBattle = null;
         _onUpdateHUD = null;
+    }
+
+
+    public static string EnumToString(Enum enumValue)
+    {
+        StringBuilder sb = new StringBuilder(enumValue.ToString().Length);
+
+        for (int i = 0; i < enumValue.ToString().Length; i++)
+        {
+            char c = enumValue.ToString()[i];
+            if (char.IsUpper(c) && i > 0 && !char.IsUpper(enumValue.ToString()[i - 1]))
+            {
+                sb.Append(" ");
+            }
+            else if (c == '_')
+            {
+                sb.Append(" ");
+            }
+            sb.Append(c);
+        }
+
+        return sb.ToString();
     }
 }

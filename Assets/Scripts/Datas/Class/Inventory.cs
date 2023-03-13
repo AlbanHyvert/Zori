@@ -4,9 +4,9 @@ using UnityEngine;
 [System.Serializable]
 public class Inventory
 {
-    [SerializeField] private List<Item> _itemList = new List<Item>();
+    [SerializeField] private List<obj_Item> _itemList = new List<obj_Item>();
 
-    public List<Item> ItemList
+    public List<obj_Item> ItemList
         => _itemList;
 
 }

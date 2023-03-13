@@ -25,9 +25,18 @@ public class obj_Techs : ScriptableObject
         [TextArea] public string Description;
         public e_Types Type;
         [Header("Cost")]
-        public int Power;
+        [SerializeField] private int _power;
         public int Stamina;
+
+        [Range(1,100)] private float _bonus;
+
+        public void SetBonus(float value)
+            => _bonus = value;
+
+        public int ReturnPower()
+            => Mathf.FloorToInt(_power * _bonus);
     }
+
     [System.Serializable]
     public struct Extras
     {
@@ -36,6 +45,7 @@ public class obj_Techs : ScriptableObject
         public e_Targets Target;
         public Effects Effect;
     }
+
     [System.Serializable]
     public struct Effects
     {

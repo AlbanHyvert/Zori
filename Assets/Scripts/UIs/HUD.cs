@@ -1,31 +1,21 @@
 using UnityEngine;
 
-public class HUD : Singleton<HUD>
+public class HUD : MonoBehaviour
 {
-    [SerializeField] private DialBox _dialBox = null;
     [SerializeField] private BattleHUD _battleHUD = null;
-    [SerializeField] private BattleSelector _battleSelector = null;
+    [SerializeField] private TechSelector _techSelector = null;
+    [SerializeField] private ItemSelector _itemSelector = null;
     [SerializeField] private UI_Switch _uiSwitch = null;
 
-    public DialBox DialBox
-        => _dialBox;
     public BattleHUD BattleHUD
         => _battleHUD;
-    public BattleSelector Selector
-        => _battleSelector;
+    public TechSelector TechSelector
+        => _techSelector;
+    public ItemSelector ItemSelector
+        => _itemSelector;
     public UI_Switch UISwitch
         => _uiSwitch;
 
-    protected override void Awake()
-    {
-        base.Awake();
-        ActivateBattleHUD(false);
-        ActivateDialbox(false);
-    }
-
-    public void ActivateDialbox(bool value)
-        => _dialBox.gameObject.SetActive(value);
-    
     public void ActivateBattleHUD(bool value)
         {
             _battleHUD.SetActivePlayerUi(value);

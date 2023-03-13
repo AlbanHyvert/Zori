@@ -1,10 +1,8 @@
-using System.Collections;
 using UnityEngine;
-using TMPro;
 
 public class BattleManager : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI _textZone = null;
+    [SerializeField] private HUD _hud = null;
     [SerializeField] private ActiveMonster _playerUnit = null;
     [SerializeField] private ActiveMonster _enemyUnit = null;
     [Space(10)]
@@ -17,9 +15,12 @@ public class BattleManager : MonoBehaviour
     private TeamHolder _enemyTeam = null;
     private ActionType _playerAction = ActionType.NONE;
     private ActionType _enemyAction = ActionType.NONE;
-    private BattleState _currentState;
+    private BattleState _currentState = null;
 
 #region PROPERTIES
+    public HUD HUD 
+        => _hud;
+
     public ActiveMonster PlayerUnit
     => _playerUnit;
     public ActiveMonster EnemyUnit
@@ -48,17 +49,20 @@ public class BattleManager : MonoBehaviour
     {
         SetTeam();
 
-        DialogueManager.Instance.AddTextBox(_textZone);
-
         DialogueManager.Instance.StartDialogue("A battle is about to start !");
 
         SetState(new StartBattleState());
     }
 
+    private void SetTeam()
+    {
+        _playerTeam = Player.Instance.TeamHolder;
+    }
+
 #region MOVE SELECTION
     public void ChooseTech(int value)
     {
-        obj_Techs tech = _playerUnit.Monster.Techs[value];
+        obj_Techs tech = HUD.TechSelector.ActionBtn[value].Tech;
 
         _playerUnit.SetTech(tech);
 
@@ -82,6 +86,19 @@ public class BattleManager : MonoBehaviour
         SetState(new ResolveTurnState());
     }
 
+    public void ChooseItem(int index)
+    {
+        obj_Item item = HUD.ItemSelector.ActionBtn[index].Item;
+
+        _playerUnit.SetItem(item);
+
+        SetPActionType(ActionType.ITEM);
+
+        SetPlayerPrio(_playerPriorities.itemPrio);
+
+        SetState(new ResolveTurnState());
+    }
+
     public void ChooseRun()
     {
         SetPActionType(ActionType.RUN);
@@ -92,11 +109,24 @@ public class BattleManager : MonoBehaviour
     }
 #endregion MOVE SELECTION
 
-    private void SetTeam()
+#region BATTLE OVER
+    public void GainXP(ActiveMonster unit)
     {
-        _playerTeam = Player.Instance.TeamHolder;
+        _playerUnit.Monster.AddExperience(unit.Monster.Base.GivenXp);
     }
+#endregion BATTLE OVER
 
+#region  SET PROPERTIES
+    public void SetPActionType(ActionType type)
+    => _playerAction = type;
+    public void SetEActionType(ActionType type)
+    => _enemyAction = type;
+    public void SetPlayerPrio(int value)
+    => _playerPriority = value;
+    public void SetEnemyPrio(int value)
+    => _enemyPriority = value;
+#endregion SET PROPERTIES
+    
     public void SetState(BattleState state) 
     {
         if (_currentState != null)
@@ -117,50 +147,6 @@ public class BattleManager : MonoBehaviour
         // Reset Pokemon stats and HP
     }
 
-#region BATTLE OVER
-    public IEnumerator Victory()
-    {
-        DialogueManager.Instance.StartDialogue("You have won !");
-
-        while(DialogueManager.Instance.IsTyping) yield return null;
-
-        DialogueManager.Instance.StartDialogue(_playerUnit.Monster.Nickname + " " + "has gained" + " " + _enemyUnit.Monster.Base.GivenXp.ToString() + " !");
-
-        while(DialogueManager.Instance.IsTyping) yield return null;
-
-        LoadingSceneManager.Instance.LoadLevelAsync("EncounterScene");
-    }
-
-    public IEnumerator Lost()
-    {
-        DialogueManager.Instance.StartDialogue("You have lost !");
-
-        while(DialogueManager.Instance.IsTyping) yield return null;
-
-        DialogueManager.Instance.StartDialogue("You do not have any healthy zori anymore.");
-
-        while(DialogueManager.Instance.IsTyping) yield return null;
-
-        LoadingSceneManager.Instance.LoadLevelAsync("EncounterScene");
-    }
-
-    public void GainXP(ActiveMonster unit)
-    {
-        _playerUnit.Monster.AddExperience(unit.Monster.Base.GivenXp);
-    }
-#endregion BATTLE OVER
-
-#region  SET PROPERTIES
-    public void SetPActionType(ActionType type)
-    => _playerAction = type;
-    public void SetEActionType(ActionType type)
-    => _enemyAction = type;
-    public void SetPlayerPrio(int value)
-    => _playerPriority = value;
-    public void SetEnemyPrio(int value)
-    => _enemyPriority = value;
-#endregion SET PROPERTIES
-    
     public enum ActionType
     {
         NONE,

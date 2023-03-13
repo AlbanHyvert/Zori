@@ -25,6 +25,8 @@ public class UI_Switch : MonoBehaviour
 
         public Monsters SetMonster(Monsters newMonster)
         {
+            button.enabled = true;
+
             monster = newMonster;
             
             name.text = monster.Nickname;
@@ -41,6 +43,7 @@ public class UI_Switch : MonoBehaviour
             
             name.text = "- - - -";
             level.text = "00";
+            button.enabled = false;
             //Set Icon
             //stamina.text = "00";
         }
