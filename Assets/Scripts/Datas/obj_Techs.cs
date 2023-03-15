@@ -28,13 +28,8 @@ public class obj_Techs : ScriptableObject
         [SerializeField] private int _power;
         public int Stamina;
 
-        [Range(1,100)] private float _bonus;
-
-        public void SetBonus(float value)
-            => _bonus = value;
-
         public int ReturnPower()
-            => Mathf.FloorToInt(_power * _bonus);
+            => _power;
     }
 
     [System.Serializable]

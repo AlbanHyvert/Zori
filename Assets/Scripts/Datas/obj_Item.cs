@@ -28,35 +28,15 @@ public class obj_Item : ScriptableObject
 
     public e_Category Category
         => _category;
+    public e_Names Name
+        => _name;
+    public float Value
+        => _value;
 
     public void Use(Monsters monster, List<obj_Item> list)
     {
         switch (_name)
         {
-            case e_Names.CrystAura:
-                break;
-            case e_Names.RareCrystAura:
-                break;
-            case e_Names.MysticCrystAura:
-                break;
-            case e_Names.LegendaryCrystAura:
-                break;
-            case e_Names.VerdantCrystAura:
-                break;
-            case e_Names.StormingCrystAura:
-                break;
-            case e_Names.MoltenCrystAura:
-                break;
-            case e_Names.CosmicCrystAura:
-                break;
-            case e_Names.ClimaticCrystAura:
-                break;
-            case e_Names.TemporalCrystAura:
-                break;
-            case e_Names.ChromaticCrystAura:
-                break;
-            case e_Names.LinkCrystAura:
-                break;
             case e_Names.CoolBalm:
                 if(monster.Affliction.Equals(e_Afflictions.BURN))
                 {
@@ -149,20 +129,6 @@ public class obj_Item : ScriptableObject
                 RemoveBattlePoints(e_BpGiven.SPEED, monster);
                 list.Remove(this);
                 break;
-            case e_Names.TraitToken:
-                break;
-            case e_Names.AbilityToken:
-                break;
-            case e_Names.FierceScroll:
-                break;
-            case e_Names.EagerScroll:
-                break;
-            case e_Names.CarefulScroll:
-                break;
-            case e_Names.ResilientScroll:
-                break;
-            case e_Names.SealedScroll:
-                break;
             case e_Names.Elixir:
                 Heal(monster);
                 list.Remove(this);
@@ -194,127 +160,6 @@ public class obj_Item : ScriptableObject
         }
     }
 
-    public void Use(obj_Techs tech, List<obj_Item> list)
-    {
-        switch (_name)
-        {
-            case e_Names.NormalCharm:
-                if(tech.Information.Type.Equals(e_Types.NEUTRAL))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.FireCharm:
-                if(tech.Information.Type.Equals(e_Types.PYRO))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.WaterCharm:
-                if(tech.Information.Type.Equals(e_Types.HYDRO))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.NatureCharm:
-                if(tech.Information.Type.Equals(e_Types.PHYTO))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.ElectricCharm:
-                if(tech.Information.Type.Equals(e_Types.ELECTRO))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.IceCharm:
-                if(tech.Information.Type.Equals(e_Types.CRYO))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.ToxicCharm:
-                if(tech.Information.Type.Equals(e_Types.VENO))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.EarthCharm:
-                if(tech.Information.Type.Equals(e_Types.GEO))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.WindCharm:
-                if(tech.Information.Type.Equals(e_Types.AERO))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.HiveCharm:
-                if(tech.Information.Type.Equals(e_Types.INSECTO))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.IronCharm:
-                if(tech.Information.Type.Equals(e_Types.MENTAL))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.BattleCharm:
-                if(tech.Information.Type.Equals(e_Types.MARTIAL))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.PsyCharm:
-                if(tech.Information.Type.Equals(e_Types.MENTAL))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.GhostCharm:
-                if(tech.Information.Type.Equals(e_Types.SPECTRAL))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.DarkCharm:
-                if(tech.Information.Type.Equals(e_Types.UMBRA))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            case e_Names.LightCharm:
-                if(tech.Information.Type.Equals(e_Types.LUMA))
-                {
-                    BoostTechPower(tech);
-                    list.Remove(this);
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
     private void Heal(Monsters monster)
     {
         monster.Heal((int)_value);
@@ -328,11 +173,6 @@ public class obj_Item : ScriptableObject
     private void Cure(Monsters monster)
     {
         monster.SetAffliction(e_Afflictions.NONE);
-    }
-
-    private void BoostTechPower(obj_Techs tech)
-    {
-        tech.Information.SetBonus(_value);
     }
 
     private void AddBattlePoints(e_BpGiven stat, Monsters monster)

@@ -48,7 +48,28 @@ public class ResolveTurnState : BattleState
 
         int playerSpeed = Mathf.FloorToInt(battleManager.PlayerUnit.Monster.Stats.Speed * battleManager.PlayerUnit.Monster.StatsBoost.ReturnModificator(playerSpeedBoost));
         int enemySpeed = Mathf.FloorToInt(battleManager.EnemyUnit.Monster.Stats.Speed * battleManager.EnemyUnit.Monster.StatsBoost.ReturnModificator(enemySpeedBoost));
+
+        obj_Item pItem = battleManager.PlayerUnit.Monster.HoldItem;
+        obj_Item eItem = battleManager.EnemyUnit.Monster.HoldItem;
+
+        Debug.Log("Check For Items");
+
+        if(pItem != null)
+        {
+            if(pItem.Name.Equals(e_Names.PolishedChains))
+            {
+                playerSpeed = Mathf.FloorToInt(playerSpeed * pItem.Value);
+            }
+        }
         
+        if(eItem != null)
+        {
+            if(eItem.Name.Equals(e_Names.PolishedChains))
+            {
+                enemySpeed = Mathf.FloorToInt(enemySpeed * eItem.Value);
+            }
+        }
+
         if(battleManager.PlayerUnit.Monster.Affliction == e_Afflictions.PARALYSIS)
         {
             playerSpeed = playerSpeed / 2;
@@ -58,6 +79,8 @@ public class ResolveTurnState : BattleState
         {
             enemySpeed = enemySpeed / 2;
         }
+
+        Debug.Log("Check For turns");
 
         if (battleManager.PlayerUnit.Monster.Stats.Speed >= battleManager.EnemyUnit.Monster.Stats.Speed)
         {
@@ -115,6 +138,8 @@ public class ResolveTurnState : BattleState
 
     private void PlayerTurn()
     {
+        Debug.Log("Player Turns");
+
         _playerTurnEnded = true;
 
         if(battleManager.PlayerAction == BattleManager.ActionType.AFFLICTED)
@@ -148,6 +173,8 @@ public class ResolveTurnState : BattleState
 
     private void EnemyTurn()
     {
+        Debug.Log("Player Turns");
+
         _enemyTurnEnded = true;
 
         if (battleManager.EnemyAction == BattleManager.ActionType.AFFLICTED)
@@ -180,6 +207,8 @@ public class ResolveTurnState : BattleState
 
     private void CheckForBattleOver(ActiveMonster faintedUnit)
     {
+        Debug.Log("Monster Fainted: " + faintedUnit.Monster.Nickname);
+
         if (faintedUnit.IsPlayer)
         {
             Monsters nextZori = battleManager.PlayerTeam.GetHealthyZori();
@@ -310,6 +339,17 @@ public class ResolveTurnState : BattleState
                 while(DialogueManager.Instance.IsTyping) yield return null;
 
                 item.Use(unit.Monster, Player.Instance.Inventory.ItemList);
+
+                while(unit.UI.HasUpdated == false) yield return null;
+                
+                break;
+
+            case e_Category.Battle_Item:
+                DialogueManager.Instance.StartDialogue("Player is giving the " + item.ReturnName() + " to " + unit.Monster.Nickname);
+
+                while(DialogueManager.Instance.IsTyping) yield return null;
+
+                unit.Monster.GiveItem(item);
 
                 while(unit.UI.HasUpdated == false) yield return null;
                 
@@ -447,7 +487,7 @@ public class ResolveTurnState : BattleState
 #endregion AFFLICTIONS
 
 #region  DEAL DAMAGE
-    private static int DealDamage(ActiveMonster activeSender, ActiveMonster activeReceiver)
+    private int DealDamage(ActiveMonster activeSender, ActiveMonster activeReceiver)
     {
         if(activeSender.TechUsed.Extra.Style == e_Styles.TACTIC)
         {
@@ -461,19 +501,258 @@ public class ResolveTurnState : BattleState
 
         float checkStatsDiff = CheckStatsDiff(activeSender.TechUsed, activeSender.Monster, activeReceiver.Monster);
 
-        int dmg = Mathf.FloorToInt(((((((2 * activeSender.Monster.Level) / 5) + 2) * activeSender.TechUsed.Information.ReturnPower() * checkStatsDiff) / 50 + 2) * modifier));
+        float actualPower = CalculatePower(activeSender);
+
+        int dmg = Mathf.FloorToInt(((((((2 * activeSender.Monster.Level) / 5) + 2) * actualPower * checkStatsDiff) / 50 + 2) * modifier));
+
+        Debug.Log("Damage: " + dmg);
+
+        //CheckForItem
+        if(activeReceiver.Monster.HoldItem != null)
+        {
+            obj_Item item = activeReceiver.Monster.HoldItem;
+            obj_Techs tech = activeSender.TechUsed;
+
+            switch(item.Name)
+            {
+                case e_Names.NormalPlate:
+                if(tech.Information.Type.Equals(e_Types.NEUTRAL))
+                {
+                    float curDmg = dmg / item.Value;
+
+                    Debug.Log("CurDamage: " + curDmg);
+
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.FirePlate:
+                if(tech.Information.Type.Equals(e_Types.PYRO))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.WaterPlate:
+                if(tech.Information.Type.Equals(e_Types.HYDRO))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.NaturePlate:
+                if(tech.Information.Type.Equals(e_Types.PHYTO))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.ElectricPlate:
+                if(tech.Information.Type.Equals(e_Types.ELECTRO))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.IcePlate:
+                if(tech.Information.Type.Equals(e_Types.CRYO))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.ToxicPlate:
+                if(tech.Information.Type.Equals(e_Types.VENO))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.EarthPlate:
+                if(tech.Information.Type.Equals(e_Types.GEO))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.WindPlate:
+                if(tech.Information.Type.Equals(e_Types.AERO))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.HivePlate:
+                if(tech.Information.Type.Equals(e_Types.INSECTO))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.IronPlate:
+                if(tech.Information.Type.Equals(e_Types.METAL))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.BattlePlate:
+                if(tech.Information.Type.Equals(e_Types.MARTIAL))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.PsyPlate:
+                if(tech.Information.Type.Equals(e_Types.MENTAL))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.GhostPlate:
+                if(tech.Information.Type.Equals(e_Types.SPECTRAL))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.DarkPlate:
+                if(tech.Information.Type.Equals(e_Types.UMBRA))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            case e_Names.LightPlate:
+                if(tech.Information.Type.Equals(e_Types.LUMA))
+                {
+                    dmg = Mathf.FloorToInt(dmg / item.Value);
+                }
+                break;
+            }
+
+            Debug.Log("Damage with item: " + item.ReturnName()+ " " + dmg);
+        }
 
         return dmg;
     }
 
+    private float CalculatePower(ActiveMonster sender)
+    {
+        obj_Item item = sender.Monster.HoldItem;
+
+        if(item == null) return sender.TechUsed.Information.ReturnPower();
+
+        obj_Techs tech = sender.TechUsed;
+
+        switch(sender.Monster.HoldItem.Name)
+        {
+            case e_Names.NormalCharm:
+                if(tech.Information.Type.Equals(e_Types.NEUTRAL))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.FireCharm:
+                if(tech.Information.Type.Equals(e_Types.PYRO))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.WaterCharm:
+                if(tech.Information.Type.Equals(e_Types.HYDRO))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.NatureCharm:
+                if(tech.Information.Type.Equals(e_Types.PHYTO))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.ElectricCharm:
+                if(tech.Information.Type.Equals(e_Types.ELECTRO))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.IceCharm:
+                if(tech.Information.Type.Equals(e_Types.CRYO))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.ToxicCharm:
+                if(tech.Information.Type.Equals(e_Types.VENO))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.EarthCharm:
+                if(tech.Information.Type.Equals(e_Types.GEO))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.WindCharm:
+                if(tech.Information.Type.Equals(e_Types.AERO))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.HiveCharm:
+                if(tech.Information.Type.Equals(e_Types.INSECTO))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.IronCharm:
+                if(tech.Information.Type.Equals(e_Types.METAL))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.BattleCharm:
+                if(tech.Information.Type.Equals(e_Types.MARTIAL))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.PsyCharm:
+                if(tech.Information.Type.Equals(e_Types.MENTAL))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.GhostCharm:
+                if(tech.Information.Type.Equals(e_Types.SPECTRAL))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.DarkCharm:
+                if(tech.Information.Type.Equals(e_Types.UMBRA))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+            case e_Names.LightCharm:
+                if(tech.Information.Type.Equals(e_Types.LUMA))
+                {
+                    return tech.Information.ReturnPower() * item.Value;
+                }
+                break;
+        }
+    
+        return tech.Information.ReturnPower();
+    }
+
     //---------------Check extra Damage---------------
     //Check the difference between stats and return the value
-    private static float CheckStatsDiff(obj_Techs tech, Monsters sender, Monsters receiver)
+    private float CheckStatsDiff(obj_Techs tech, Monsters sender, Monsters receiver)
     {
         switch (tech.Extra.Style)
         {
             case e_Styles.PHYSIC:
                 float senderAtk = sender.Stats.Atk;
+                float receiverDef = receiver.Stats.Def;
+
+                if(sender.HoldItem != null)
+                {
+                    switch(sender.HoldItem.Name)
+                    {
+                        case e_Names.ToughChains:
+                            senderAtk = senderAtk * sender.HoldItem.Value;
+                            break;
+                    }
+                }
 
                 if(sender.Affliction == e_Afflictions.BURN)
                 {
@@ -484,10 +763,21 @@ public class ResolveTurnState : BattleState
                 int rcDef = receiver.StatsBoost.Def;
 
                 return (float)(senderAtk * sender.StatsBoost.ReturnModificator(sdAtk)) / 
-                    (float)(receiver.Stats.Def * receiver.StatsBoost.ReturnModificator(rcDef));
+                    (float)(receiverDef * receiver.StatsBoost.ReturnModificator(rcDef));
 
             case e_Styles.SPECIAL:
                 float senderSpeAtk = sender.Stats.Atk;
+                float receiverSpeDef = receiver.Stats.SpeDef;
+
+                if(sender.HoldItem != null)
+                {
+                    switch(sender.HoldItem.Name)
+                    {
+                        case e_Names.TwistedChains:
+                            senderSpeAtk = senderSpeAtk * sender.HoldItem.Value;
+                            break;
+                    }
+                }
 
                 if (sender.Affliction == e_Afflictions.BURN)
                 {
@@ -498,14 +788,14 @@ public class ResolveTurnState : BattleState
                 int rcSpeDef = receiver.StatsBoost.SpDef;
 
                 return (float)(senderSpeAtk * sender.StatsBoost.ReturnModificator(sdSpeAtk)) /
-                    (float)(receiver.Stats.SpeDef * receiver.StatsBoost.ReturnModificator(rcSpeDef));
+                    (float)(receiverSpeDef * receiver.StatsBoost.ReturnModificator(rcSpeDef));
         }
 
         return 1;
     }
 
     //Check bonus between the tech and the pokemon type
-    private static float CheckStab(obj_Techs Tech, e_Types[] zoriTypes)
+    private float CheckStab(obj_Techs Tech, e_Types[] zoriTypes)
     {
         for (int i = 0; i < zoriTypes.Length; i++)
         {

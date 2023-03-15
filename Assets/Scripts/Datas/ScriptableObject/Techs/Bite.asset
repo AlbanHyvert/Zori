@@ -16,7 +16,7 @@ MonoBehaviour:
     Name: Bite
     Description: 
     Type: 0
-    _power: 2
+    _power: 20
     Stamina: 5
   _extras:
     Tag: 1

@@ -59,14 +59,27 @@ public class ActionTurnState : BattleState
 
     private void LoadTech()
     {
+        Monsters unit = battleManager.PlayerUnit.Monster;
+        obj_Techs tech = null;
+        obj_Item item = battleManager.PlayerUnit.Monster.HoldItem;
+
         //Clear every Tech
         for(int i = 0; i < HUD.TechSelector.ActionBtn.Length; i++)
         {
             HUD.TechSelector.ActionBtn[i].Clear();
         }
 
-        Monsters unit = battleManager.PlayerUnit.Monster;
-        obj_Techs tech = null;
+        if(item != null)
+        {
+            if(item.Name.Equals(e_Names.ToughChains) || item.Name.Equals(e_Names.TwistedChains) || item.Name.Equals(e_Names.PolishedChains))
+            {
+                tech = unit.Techs[0];
+
+                HUD.TechSelector.ActionBtn[0].SetTech(tech);
+
+                return;
+            }
+        }
 
         //Set the tech
         for(int i = 0; i < unit.Techs.Length; i++)
@@ -106,14 +119,26 @@ public class ActionTurnState : BattleState
     private void EnemyTechSelection()
     {
         int maxTech = battleManager.EnemyUnit.Monster.Techs.Length;
-
         int rdmTech = Random.Range(0, maxTech);
 
         obj_Techs tech = battleManager.EnemyUnit.Monster.Techs[rdmTech];
+        obj_Item item = battleManager.EnemyUnit.Monster.HoldItem;
 
         if(tech == null)
         {
             EnemyTechSelection();
+            return;
+        }
+
+        if(item != null)
+        {
+            if(item.Name.Equals(e_Names.ToughChains) || item.Name.Equals(e_Names.TwistedChains) || item.Name.Equals(e_Names.PolishedChains))
+            {
+                tech = battleManager.EnemyUnit.Monster.Techs[0];
+
+                HUD.TechSelector.ActionBtn[0].SetTech(tech);
+            }
+
             return;
         }
 

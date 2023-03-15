@@ -15,6 +15,7 @@ public class Monsters : IHealth, IStamina
     [SerializeField] private Animator _animator = null;
     [Header("Dev Tools")]
     [Space ,SerializeField] private BattlePoints _battlePoints = new BattlePoints();
+    [Space, SerializeField] private obj_Item _item = null;
 
 #region Variables
     private string _nickname = string.Empty;
@@ -23,7 +24,6 @@ public class Monsters : IHealth, IStamina
     private e_Traits _trait = e_Traits.NONE;
     private Passive _passive = null;
     private bool _isChroma = false;
-    private obj_Item _item = null;
     private int _hp = 0;
     private int _stamina = 0;
     [SerializeField] private int _experience = 0;
@@ -45,6 +45,8 @@ public class Monsters : IHealth, IStamina
         => _affliction;
     public obj_Techs[] Techs
         => _techs;
+    public obj_Item HoldItem
+        => _item;
     public StatsBoost StatsBoost
         => _statsBoostHolder;
     public obj_MonsterBase Base
@@ -216,6 +218,9 @@ public class Monsters : IHealth, IStamina
 
     public void SetAffliction(e_Afflictions newAffliction)
         => _affliction = newAffliction;
+
+    public void GiveItem(obj_Item item)
+        => _item = item;
 
 #region Interfaces
 //--------------------------Health--------------------------
