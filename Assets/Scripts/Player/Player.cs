@@ -58,6 +58,12 @@ public class Player : Singleton<Player>
         GameManager.Instance.GetPlayer(this);
     }
 
+    private void Start()
+    {
+        if (_isInBattle != null)
+            _isInBattle(false);
+    }
+
     public void InitBattle(GameObject encounter = null)
     {
         //Check npc, if null

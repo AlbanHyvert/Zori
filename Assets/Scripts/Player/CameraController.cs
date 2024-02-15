@@ -8,6 +8,11 @@ public class CameraController : MonoBehaviour
     public Camera Camera
     => _worldCam;
 
+    private void Start()
+    {
+        Player.Instance.IsInBattle += InBattle;
+    }
+
     public void InBattle(bool value)
     {
         if(value == true)
@@ -22,6 +27,8 @@ public class CameraController : MonoBehaviour
             _cinematicCam.gameObject.SetActive(false);
             _worldCam.gameObject.SetActive(true);
         }
+
+        Debug.Log("Camera active: " + value);
     }
 
     public void InCinematic(bool value)
@@ -35,8 +42,14 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            _worldCam.gameObject.SetActive(false);
-            _cinematicCam.gameObject.SetActive(true);
+            _worldCam.gameObject.SetActive(true);
+            _cinematicCam.gameObject.SetActive(false);
         }
+    }
+
+    private void OnDestroy()
+    {
+        if(this != null && Player.Instance != null)
+            Player.Instance.IsInBattle -= InBattle;
     }
 }

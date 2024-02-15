@@ -111,7 +111,7 @@ public class GameManager : Singleton<GameManager>
 
     private void Start()
     {
-        LoadingSceneManager.Instance.LoadLevelAsync("EncounterScene");
+         LoadingSceneManager.Instance.LoadLevelAsync("EncounterScene");   
     }
 
     private void FixedUpdate()

@@ -61,6 +61,7 @@ MonoBehaviour:
       _speAtk: 0
       _speDef: 0
       _speed: 0
+    _item: {fileID: 0}
     _experience: 0
   _settings: {fileID: 11400000, guid: 8c3270ee726d2cc4c8eccc908cde00e5, type: 2}
   _meshRenderer: {fileID: 1159503490251549652}
@@ -118,6 +119,7 @@ GameObject:
   - component: {fileID: 1159503490251549655}
   - component: {fileID: 1159503490251549653}
   - component: {fileID: 1159503490251549652}
+  - component: {fileID: 5117494296901862766}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -188,6 +190,25 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!95 &5117494296901862766
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1159503490251549654}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &1282441783315144922
 GameObject:
   m_ObjectHideFlags: 0

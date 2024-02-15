@@ -25,8 +25,6 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        _camController.InBattle(false);
-
         Player.Instance.IsInBattle += InBattle;
         Player.Instance.IsLoaded += IsLoaded;
 
@@ -67,25 +65,27 @@ public class PlayerController : MonoBehaviour
 
     private void InBattle(bool value)
     {
-        _camController.InBattle(value);
+        Debug.Log("is in Battle: " + value);
 
         _isInBattle = value;
 
+        GameManager.Instance.UpdatePlayerLastPos(this.transform.position + Vector3.up);
+
         if (value == true)
         {
-            GameManager.Instance.UpdatePlayerLastPos(this.transform.position);
-
             GameManager.Instance.OnUpdatePlayer -= Tick;
-            _rb.isKinematic = false;
-            _rb.useGravity = true;
+            _rb.useGravity = false;
+            _rb.isKinematic = true;
+            Debug.Log("Physics off");
         }
         else
         {
             this.transform.position = GameManager.Instance.LastPosition;
 
             GameManager.Instance.OnUpdatePlayer += Tick;
-            _rb.useGravity = false;
-            _rb.isKinematic = true;
+            _rb.isKinematic = false;
+            _rb.useGravity = true;
+            Debug.Log("Physics on");
         }
     }
 

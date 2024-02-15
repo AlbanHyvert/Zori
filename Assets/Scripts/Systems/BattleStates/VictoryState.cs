@@ -14,8 +14,11 @@ public class VictoryState : BattleState
 
         while(DialogueManager.Instance.IsTyping) yield return null;
 
-        LoadingSceneManager.Instance.LoadLevelAsync("EncounterScene");
+        battleManager.GainXP(battleManager.EnemyUnit);
 
+        battleManager.PlayerUnit.Monster.Regeneration(battleManager.PlayerUnit.Monster.MaxStamina);
+
+        LoadingSceneManager.Instance.LoadLevelAsync("EncounterScene");
         Player.Instance.ExitBattle();
     }
 }

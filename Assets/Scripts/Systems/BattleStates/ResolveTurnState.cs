@@ -321,6 +321,8 @@ public class ResolveTurnState : BattleState
 
         while(DialogueManager.Instance.IsTyping) yield return null;
 
+        unit.Monster.Regeneration(unit.Monster.MaxStamina);
+
         unit.SetMonster(newMonster, true);
 
         CheckNextTurn();
@@ -365,7 +367,6 @@ public class ResolveTurnState : BattleState
     private void CheckForEffects(obj_Techs tech, ActiveMonster unit)
     {
         e_Afflictions techAffliction = tech.Extra.Effect.affliction;
-        e_Types techType = tech.Information.Type;
 
         Monsters target = unit.Monster;
 
@@ -490,6 +491,11 @@ public class ResolveTurnState : BattleState
     private int DealDamage(ActiveMonster activeSender, ActiveMonster activeReceiver)
     {
         if(activeSender.TechUsed.Extra.Style == e_Styles.TACTIC)
+        {
+            return 0;
+        }
+
+        if(activeSender.TechUsed.Information.ReturnPower() <= 0)
         {
             return 0;
         }

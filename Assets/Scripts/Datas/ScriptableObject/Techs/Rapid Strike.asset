@@ -16,18 +16,18 @@ MonoBehaviour:
     Name: Rapid Strike
     Description: 
     Type: 11
-    Power: 40
+    _power: 0
     Stamina: 15
   _extras:
     Tag: 8
-    Style: 0
+    Style: 2
     Target: 0
     Effect:
       affliction: 0
-      statsMod:
-        atk: 0
-        def: 0
-        spAtk: 0
-        spDef: 0
-        speed: 0
+      statsBoost:
+        _atk: 0
+        _def: 0
+        _spAtk: 0
+        _spDef: 0
+        _speed: 0
   _priority: 1

@@ -307,6 +307,7 @@ MonoBehaviour:
         _speAtk: 0
         _speDef: 0
         _speed: 0
+      _item: {fileID: 0}
       _experience: 4000
     - _base: {fileID: 11400000, guid: e8f60649903434e4db8126c875be7723, type: 2}
       _level: 10
@@ -318,6 +319,7 @@ MonoBehaviour:
         _speAtk: 0
         _speDef: 0
         _speed: 0
+      _item: {fileID: 0}
       _experience: 300
   _controller: {fileID: 0}
 --- !u!114 &7194873789723892049

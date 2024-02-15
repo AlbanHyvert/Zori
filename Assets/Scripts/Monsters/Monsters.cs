@@ -55,6 +55,8 @@ public class Monsters : IHealth, IStamina
         => _hp;
     public int Stamina
         => _stamina;
+    public int MaxStamina
+        => _stats.MaxStamina;
     public BattlePoints BattlePoints
         => _battlePoints;
 #endregion Properties

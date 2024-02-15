@@ -19,6 +19,7 @@ public class BattleHUD : MonoBehaviour
 
     public void OnRun()
     {
+        Player.Instance.ExitBattle();
         LoadingSceneManager.Instance.LoadLevelAsync("EncounterScene");
     }
 }

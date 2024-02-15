@@ -1102,7 +1102,8 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 3
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5391771830381702113, guid: 996bae582686cd34b8a16708db1cee1e, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 996bae582686cd34b8a16708db1cee1e, type: 3}
 --- !u!1 &831278199
 GameObject:
@@ -1312,7 +1313,7 @@ MonoBehaviour:
     radius: 10
     maxDistance: 1
     minLevel: 1
-    maxLevel: 100
+    maxLevel: 12
     monstersArray:
     - {fileID: 9097888032585847833, guid: 60f6b19a5d9d6a54a975525287fcfbd4, type: 3}
     - {fileID: 1159503489957792473, guid: 522422bac34343043968d2d438b360b2, type: 3}
